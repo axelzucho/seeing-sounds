@@ -211,7 +211,7 @@ function compareArrays(arr1, arr2) {
 
 $(function () {
 
-  document.querySelector('input').addEventListener('change', function () {
+  document.querySelector('#audio').addEventListener('change', function () {
 
     var reader = new FileReader();
     reader.onload = function () {

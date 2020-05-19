@@ -112,7 +112,7 @@ class Ppm {
 }
 
 $(function () {
-    document.querySelector('input').addEventListener('change', function () {
+    document.querySelector('#image').addEventListener('change', function () {
 
         var reader = new FileReader();
         reader.onload = function () {
