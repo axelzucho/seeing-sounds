@@ -29,9 +29,9 @@ class Ppm {
         }
         if (this.header.width <= 0 || this.header.height <= 0) {
             throw "Expected positive dimentions, but got: " + this.header.width.toString() +
-                " x " + this.header.height.toString();
+            " x " + this.header.height.toString();
         }
-        if (this.header.max_val <= 0){
+        if (this.header.max_val <= 0) {
             throw "Expected positive maximum value for pixels, instead got: " + this.header.max_val;
         }
     }
@@ -55,8 +55,8 @@ class Ppm {
     }
 
     toIntArray(slice) {
-        for(var i = 0; i < slice.length - 2; i+=3){
-            var result = (slice[i+2] << 16 | slice[i+1] << 8 | slice[i]);
+        for (var i = 0; i < slice.length - 2; i += 3) {
+            var result = (slice[i + 2] << 16 | slice[i + 1] << 8 | slice[i]);
             this.data.push(result);
         }
     }
@@ -73,7 +73,7 @@ class Ppm {
     separateRGB() {
         var rgb = [];
 
-        for(var i = 0; i < this.data.length; i++){
+        for (var i = 0; i < this.data.length; i++) {
             var vals = this.getRGBFromInt(this.data[i]);
             rgb.push(vals[0], vals[1], vals[2]);
         }
@@ -81,7 +81,7 @@ class Ppm {
         return rgb;
     }
 
-    getOutputHeader(){
+    getOutputHeader() {
         var result = "";
         result += this.header.format;
         result += "\n";
@@ -110,23 +110,3 @@ class Ppm {
         return filepath;
     }
 }
-
-$(function () {
-    document.querySelector('#image').addEventListener('change', function () {
-
-        var reader = new FileReader();
-        reader.onload = function () {
-            var arrayBuffer = this.result,
-                decArray = new Uint8Array(arrayBuffer),
-                ppm = new Ppm(decArray),
-                link = document.getElementById("downloadLink");
-
-            ppm.rawbytes = this.result;
-            link.href = ppm.outputToURL("image.ppm");
-            link.download = "image.ppm";
-            link.style.display = 'block';
-        };
-        reader.readAsArrayBuffer(this.files[0]);
-
-    }, false);
-});

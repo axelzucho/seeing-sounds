@@ -23,6 +23,7 @@ class Wav {
   decArray = [];
   data = [];
   offset = 0;
+  audioData = [];
   header = {
     "riff": -1,
     "chunkSize": -1,
@@ -39,16 +40,6 @@ class Wav {
     "subchunk2Size": -1
   };
 
-  constructor(arr) {
-    this.decArray = arr;
-    console.log(this.decArray);
-    this.addHeader();
-    this.addData();
-    this.checkMetaData();
-    this.printHeader();
-    this.toIntArray();
-  }
-
   fromFile(arr) {
     this.decArray = arr;
     this.addHeader();
@@ -56,39 +47,46 @@ class Wav {
     this.checkMetaData();
     this.printHeader();
     this.toIntArray();
+    console.log(this.audioData);
   }
 
   fromInterm(interm) {
     this.audioData = interm.data;
     this.header = this.genHeader(interm);
+    this.printHeader();
   }
 
   toInterm() {
     this.toIntArray();
     var interm = new Intermediate();
     interm.data = this.audioData;
-    interm.rate = this.header.byteRate;
+    interm.rate = decToValue(this.header.byteRate);
     return interm;
   }
 
+  // Assuming:
+  // Format: PCM
+  // Number of channels: 2
+  // Block align: 4 (bytes per sample)
+  // Bits per sample: 16 (bits per sample per channel)
   genHeader(interm) {
-    length = interm.data.length;
+    var length = interm.data.length;
+    var rate = interm.rate;
     var header = {
       "riff": [82, 73, 70, 70],
-      "chunkSize": [],
+      "chunkSize": valueToDec(length + 36),
       "wave": [87, 65, 86, 69],
       "fmt": [102, 109, 116, 32],
       "subchunk1Size": [16, 0, 0, 0], // For PCM format
       "audioFormat": [1, 0], // PCM format
       "numChannels": [2, 0],
-      "sampleRate": -1,
-      "byteRate": -1,
-      "blockAlign": -1,
-      "bitsPerSample": -1,
+      "sampleRate": valueToDec(rate / 4),
+      "byteRate": valueToDec(rate),
+      "blockAlign": [4, 0],
+      "bitsPerSample": [16, 0],
       "data": [100, 97, 116, 97],
       "subchunk2Size": valueToDec(length)
     };
-    console.log(header);
     return header;
   }
 
@@ -111,7 +109,7 @@ class Wav {
     this.offset += this.skipJunk(36);
     this.header.data = this.getSlice(36, 40);
     this.header.subchunk2Size = this.getSlice(40, 44);
-    this.audioData = this.getSlice(44, this.decArray.length);
+    this.audioData = this.getSlice(44, 44 + decToValue(this.header.subchunk2Size));
   }
 
   getSlice(start, end) {
@@ -134,12 +132,13 @@ class Wav {
   skipJunk(index) {
     var name = this.getSlice(index, index + 4);
     var name = String.fromCharCode.apply(null, name);
-    if (name.localeCompare("JUNK") != 0
-      || name.localeCompare("FLLR") != 0) {
+    if (name.localeCompare("JUNK") == 0
+      || name.localeCompare("FLLR") == 0) {
       var size = this.getSlice(index + 4, index + 8);
       var decSize = decToValue(size);
       return 8 + decSize;
     }
+    return 0;
   }
 
   toIntArray() {
@@ -150,7 +149,6 @@ class Wav {
         | this.audioData[i]);
       this.data.push(result);
     }
-    console.log(this.data)
   }
 
 
@@ -176,6 +174,7 @@ class Wav {
   }
 
   getOutputHeader() {
+    console.log(this.header)
     var result = [];
     result.push(...this.header.riff);
     result.push(...this.header.chunkSize);
@@ -195,10 +194,15 @@ class Wav {
 
   toFile(filepath) {
     var outputHeader = this.getOutputHeader();
-    var arrayData = this.separateSamples();
+    var arrayData = [];
+    if (this.audioData.length == 0) {
+      arrayData = this.separateSamples();
+    } else {
+      arrayData = this.audioData;
+    }
+    console.log(outputHeader, arrayData);
 
     var data = new Blob([outputHeader, arrayData]);
-    console.log(outputHeader, arrayData)
 
     if (filepath !== null) {
       window.URL.revokeObjectURL(filepath);
@@ -222,7 +226,6 @@ class Wav {
     if (fmt.localeCompare("fmt ") != 0) {
       throw new Error('fmt data does not match ' + fmt);
     }
-    console.log(this.header.audioFormat)
     if (!compareArrays(this.header.audioFormat, [1, 0])) {
       throw new Error('audio format does not match ' + this.header.audioFormat.join(' '));
     }
@@ -237,9 +240,10 @@ function valueToDec(value) {
   var hex = decimalToHex(value, 8);
   var arr = [];
   for (var i = hex.length; i >= 2; i -= 2) {
-      arr.push(hex.substring(i-2, i));
+    var curr = hex.substring(i - 2, i)
+    arr.push(parseInt(curr, 16));
   }
-  return hex2dec(arr)
+  return arr
 }
 
 function decimalToHex(d, padding) {
@@ -247,7 +251,7 @@ function decimalToHex(d, padding) {
   padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
 
   while (hex.length < padding) {
-      hex = "0" + hex;
+    hex = "0" + hex;
   }
 
   return hex;
@@ -275,35 +279,10 @@ function compareArrays(arr1, arr2) {
   return true;
 }
 
-$(function () {
-
-  document.querySelector('#audio').addEventListener('change', function () {
-
-    var reader = new FileReader();
-    reader.onload = function () {
-      var arrayBuffer = this.result,
-        decArray = new Uint8Array(arrayBuffer),
-        link = document.getElementById("downloadLink"),
-        wav = new Wav(decArray);
-
-      link.href = wav.toFile("audio.wav");
-      link.download = "audio.wav";
-      link.style.display = 'block';
-    }
-    reader.readAsArrayBuffer(this.files[0]);
-
-  }, false);
-
-});
-
 function buf2hex(buffer) { // buffer is an ArrayBuffer
   return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2));
 }
 
 function dec2hex(arr) { // arr is a decimal array
   return Array.prototype.map.call(arr, x => ('00' + x.toString(16)).slice(-2));
-}
-
-function hex2dec(arr) {
-  return Array.prototype.map.call(arr, x => parseInt(x, 16));
 }
