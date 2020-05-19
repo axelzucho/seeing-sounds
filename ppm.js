@@ -121,7 +121,6 @@ $(function () {
                 ppm = new Ppm(decArray),
                 link = document.getElementById("downloadLink");
 
-            ppm.rawbytes = this.result;
             link.href = ppm.outputToURL("image.ppm");
             link.download = "image.ppm";
             link.style.display = 'block';
