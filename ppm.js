@@ -82,7 +82,6 @@ class Ppm {
     separateRGB() {
         var rgb = [];
 
-        console.log(this.data);
         for (var i = 0; i < this.data.length; i++) {
             var vals = this.getRGBFromInt(this.data[i]);
             rgb.push(vals[0], vals[1], vals[2]);
@@ -113,9 +112,6 @@ class Ppm {
             newPixelData[i] = pixelData[i];
         }
 
-        console.log("checking values");
-        console.log(pixelData.length);
-        console.log(desiredLength);
         for(let i = pixelData.length; i < desiredLength; i++) {
             newPixelData[i] = 0;
         }
@@ -132,10 +128,9 @@ class Ppm {
 
     toFile(filepath) {
         var arrayData = this.separateRGB();
-        console.log(arrayData);
-        var desiredRatio = Math.floor(Math.sqrt(arrayData.length));
-        this.header.width = desiredRatio;
-        this.header.height = desiredRatio;
+        var desiredRatio = Math.floor(Math.sqrt(arrayData.length / 3));
+        this.header.width = (desiredRatio);
+        this.header.height = (desiredRatio);
         var outputHeader = StringToArrayBuffer(this.getOutputHeader());
 
         if(arrayData.length !== desiredRatio * desiredRatio) {

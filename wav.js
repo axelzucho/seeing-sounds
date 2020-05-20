@@ -47,7 +47,6 @@ class Wav {
     this.checkMetaData();
     this.printHeader();
     this.toIntArray();
-    console.log(this.audioData);
   }
 
   fromInterm(interm) {
@@ -69,7 +68,7 @@ class Wav {
   // Block align: 4 (bytes per sample)
   // Bits per sample: 16 (bits per sample per channel)
   genHeader(interm) {
-    var length = interm.data.length;
+    var length = interm.data.length * 4;
     var rate = interm.rate;
     var header = {
       "riff": [82, 73, 70, 70],
@@ -116,7 +115,6 @@ class Wav {
   }
 
   printHeader() {
-    console.log(this.header);
     console.log("Chunk size: " + decToValue(this.header.chunkSize));
     console.log("Subchunk1 size: " + decToValue(this.header.subchunk1Size));
     console.log("Audio format: " + decToValue(this.header.audioFormat));
@@ -149,7 +147,6 @@ class Wav {
         | this.data[i]);
       this.audioData.push(result);
     }
-    console.log(this.data, this.audioData)
   }
 
 
@@ -175,7 +172,6 @@ class Wav {
   }
 
   getOutputHeader() {
-    console.log(this.header)
     var result = [];
     result.push(...this.header.riff);
     result.push(...this.header.chunkSize);
@@ -201,7 +197,6 @@ class Wav {
     } else {
       arrayData = this.data;
     }
-    console.log(outputHeader, arrayData);
 
     var data = new Blob([outputHeader, arrayData]);
 

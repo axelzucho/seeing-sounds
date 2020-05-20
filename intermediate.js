@@ -15,8 +15,6 @@ $(function () {
       wav.fromFile(decArray);
 
       var interm = wav.toInterm();
-      console.log("Below this:");
-      console.log(interm);
       var ppm = new Ppm();
       ppm.fromInterm(interm);
 
