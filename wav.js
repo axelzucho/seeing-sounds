@@ -21,9 +21,9 @@
 //    44-(subchunk2size + 44): samples
 class Wav {
   decArray = [];
-  data = [];
+  data = []; // Int8 values
   offset = 0;
-  audioData = [];
+  audioData = []; // Int32 values
   header = {
     "riff": -1,
     "chunkSize": -1,
@@ -57,7 +57,6 @@ class Wav {
   }
 
   toInterm() {
-    this.toIntArray();
     var interm = new Intermediate();
     interm.data = this.audioData;
     interm.rate = decToValue(this.header.byteRate);
@@ -109,7 +108,7 @@ class Wav {
     this.offset += this.skipJunk(36);
     this.header.data = this.getSlice(36, 40);
     this.header.subchunk2Size = this.getSlice(40, 44);
-    this.audioData = this.getSlice(44, 44 + decToValue(this.header.subchunk2Size));
+    this.data = this.getSlice(44, 44 + decToValue(this.header.subchunk2Size));
   }
 
   getSlice(start, end) {
@@ -141,14 +140,16 @@ class Wav {
     return 0;
   }
 
+  // Splits 32bit int array into 8bit array
   toIntArray() {
-    for (var i = 0; i < this.audioData.length - 3; i += 4) {
-      var result = (this.audioData[i + 3] << 24
-        | this.audioData[i + 2] << 16
-        | this.audioData[i + 1] << 8
-        | this.audioData[i]);
-      this.data.push(result);
+    for (var i = 0; i < this.data.length - 3; i += 4) {
+      var result = (this.data[i + 3] << 24
+        | this.data[i + 2] << 16
+        | this.data[i + 1] << 8
+        | this.data[i]);
+      this.audioData.push(result);
     }
+    console.log(this.data, this.audioData)
   }
 
 
@@ -165,8 +166,8 @@ class Wav {
   separateSamples() {
     var samples = [];
 
-    for (var i = 0; i < this.data.length; i++) {
-      var vals = this.getSampleFromInt(this.data[i]);
+    for (var i = 0; i < this.audioData.length; i++) {
+      var vals = this.getSampleFromInt(this.audioData[i]);
       samples.push(vals[0], vals[1], vals[2], vals[3]);
     }
     samples = Uint8Array.from(samples);
@@ -195,10 +196,10 @@ class Wav {
   toFile(filepath) {
     var outputHeader = this.getOutputHeader();
     var arrayData = [];
-    if (this.audioData.length == 0) {
+    if (this.data.length == 0) {
       arrayData = this.separateSamples();
     } else {
-      arrayData = this.audioData;
+      arrayData = this.data;
     }
     console.log(outputHeader, arrayData);
 
