@@ -31,11 +31,15 @@ $(function () {
     reader.onload = function () {
       var arrayBuffer = this.result,
         decArray = new Uint8Array(arrayBuffer),
-        ppm = new Ppm(decArray),
         link = document.getElementById("downloadLink");
 
-      ppm.rawbytes = this.result;
-      link.href = ppm.outputToURL("image.ppm");
+      var ppm = new Ppm();
+      ppm.fromFile(decArray);
+      var interm = ppm.toInterm();
+      var ppm2 = new Ppm();
+      ppm2.fromIntermediate(interm, ppm.header.width, 1000);
+
+      link.href = ppm2.toFile("image.ppm");
       link.download = "image.ppm";
       link.style.display = 'block';
     };

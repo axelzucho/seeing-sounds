@@ -8,11 +8,13 @@ class Ppm {
     };
     data = [];
     index = 0;
+    fileInput = false;
 
-    constructor(array) {
+    fromFile(array) {
         this.decArray = array;
         this.extractHeader();
         this.toIntArray(this.decArray.slice(this.index, this.decArray.length));
+        this.fileInput = true;
     }
 
     extractHeader() {
@@ -20,6 +22,16 @@ class Ppm {
         this.header.width = parseInt(this.getNextWord());
         this.header.height = parseInt(this.getNextWord());
         this.header.max_val = parseInt(this.getNextWord());
+        this.checkHeader();
+    }
+
+    fromIntermediate(intermediate, width, height) {
+        this.header.format = "P6";
+        this.header.width = width;
+        this.header.height = height;
+        this.header.max_val = 255;
+        this.data = intermediate.data;
+        this.fileInput = false;
         this.checkHeader();
     }
 
@@ -95,9 +107,36 @@ class Ppm {
         return result;
     }
 
-    outputToURL(filepath) {
+    adjustRatio (pixelData, desiredLength) {
+        var newPixelData = new Uint8Array(desiredLength);
+
+        for(let i = 0; i < pixelData.length; i++) {
+            if(i === desiredLength) break;
+            newPixelData[i] = pixelData[i];
+        }
+
+        for(let i = pixelData.length; i < desiredLength; i++) {
+            newPixelData[i] = 0;
+        }
+
+        return newPixelData;
+    }
+
+    toInterm() {
+        var interm = new Intermediate();
+        interm.data = this.data;
+        interm.rate = -1;
+        return interm;
+    }
+
+    toFile(filepath) {
         var outputHeader = StringToArrayBuffer(this.getOutputHeader());
         var arrayData = this.separateRGB();
+
+        var desiredRatio = this.header.height * this.header.width * 3;
+        if(arrayData.length !== desiredRatio) {
+            arrayData = this.adjustRatio(arrayData, desiredRatio);
+        }
 
         var data = new Blob([outputHeader, arrayData]);
 
@@ -109,3 +148,4 @@ class Ppm {
 
         return filepath;
     }
+}
