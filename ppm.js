@@ -8,13 +8,11 @@ class Ppm {
     };
     data = [];
     index = 0;
-    fileInput = false;
 
     fromFile(array) {
         this.decArray = array;
         this.extractHeader();
         this.toIntArray(this.decArray.slice(this.index, this.decArray.length));
-        this.fileInput = true;
     }
 
     extractHeader() {
@@ -25,13 +23,12 @@ class Ppm {
         this.checkHeader();
     }
 
-    fromIntermediate(intermediate, width, height) {
+    fromInterm(interm) {
         this.header.format = "P6";
-        this.header.width = width;
-        this.header.height = height;
+        this.header.width = 100;
+        this.header.height = 100;
         this.header.max_val = 255;
-        this.data = intermediate.data;
-        this.fileInput = false;
+        this.data = interm.data;
         this.checkHeader();
     }
 
@@ -85,6 +82,7 @@ class Ppm {
     separateRGB() {
         var rgb = [];
 
+        console.log(this.data);
         for (var i = 0; i < this.data.length; i++) {
             var vals = this.getRGBFromInt(this.data[i]);
             rgb.push(vals[0], vals[1], vals[2]);
@@ -115,6 +113,9 @@ class Ppm {
             newPixelData[i] = pixelData[i];
         }
 
+        console.log("checking values");
+        console.log(pixelData.length);
+        console.log(desiredLength);
         for(let i = pixelData.length; i < desiredLength; i++) {
             newPixelData[i] = 0;
         }
@@ -125,17 +126,20 @@ class Ppm {
     toInterm() {
         var interm = new Intermediate();
         interm.data = this.data;
-        interm.rate = -1;
+        interm.rate = 32000;
         return interm;
     }
 
     toFile(filepath) {
-        var outputHeader = StringToArrayBuffer(this.getOutputHeader());
         var arrayData = this.separateRGB();
+        console.log(arrayData);
+        var desiredRatio = Math.floor(Math.sqrt(arrayData.length));
+        this.header.width = desiredRatio;
+        this.header.height = desiredRatio;
+        var outputHeader = StringToArrayBuffer(this.getOutputHeader());
 
-        var desiredRatio = this.header.height * this.header.width * 3;
-        if(arrayData.length !== desiredRatio) {
-            arrayData = this.adjustRatio(arrayData, desiredRatio);
+        if(arrayData.length !== desiredRatio * desiredRatio) {
+            arrayData = this.adjustRatio(arrayData, desiredRatio * desiredRatio);
         }
 
         var data = new Blob([outputHeader, arrayData]);
