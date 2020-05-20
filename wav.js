@@ -108,6 +108,12 @@ class Wav {
     this.header.data = this.getSlice(36, 40);
     this.header.subchunk2Size = this.getSlice(40, 44);
     this.data = this.getSlice(44, 44 + decToValue(this.header.subchunk2Size));
+    var left = [];
+    var right = [];
+    for (var i = 0; i < this.data.length; i+=4) {
+      left.push(decToValue(this.data.slice(i, i+2)));
+      right.push(decToValue(this.data.slice(i+2, i+4)));
+    }
   }
 
   getSlice(start, end) {

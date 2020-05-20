@@ -36,11 +36,17 @@ $(function () {
       var ppm = new Ppm();
       ppm.fromFile(decArray);
       var interm = ppm.toInterm();
-      var wav= new Wav();
-      wav.fromInterm(interm);
+      // var wav= new Wav();
+      // wav.fromInterm(interm);
 
-      link.href = wav.toFile("audio.wav");
-      link.download = "audio.wav";
+      // link.href = wav.toFile("audio.wav");
+      // link.download = "audio.wav";
+      var ppm2 = new Ppm();
+      ppm2.fromInterm(interm);
+
+      link.href = ppm2.toFile("image.ppm");
+      link.download = "image.ppm";
+      link.style.display = 'block';
       link.style.display = 'block';
     };
     reader.readAsArrayBuffer(this.files[0]);

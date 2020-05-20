@@ -128,13 +128,12 @@ class Ppm {
 
     toFile(filepath) {
         var arrayData = this.separateRGB();
-        var desiredRatio = Math.floor(Math.sqrt(arrayData.length / 3));
-        this.header.width = (desiredRatio);
-        this.header.height = (desiredRatio);
+        var desiredRatio = arrayData.length;
+        this.header.width = Math.floor(Math.sqrt(desiredRatio / 3));
+        this.header.height = Math.floor(Math.sqrt(desiredRatio / 3));
         var outputHeader = StringToArrayBuffer(this.getOutputHeader());
-
-        if(arrayData.length !== desiredRatio * desiredRatio) {
-            arrayData = this.adjustRatio(arrayData, desiredRatio * desiredRatio);
+        if(arrayData.length !== desiredRatio) {
+            arrayData = this.adjustRatio(arrayData, desiredRatio);
         }
 
         var data = new Blob([outputHeader, arrayData]);
