@@ -7,8 +7,11 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="arrayBufferOps.js"></script>
+  <script src="libs/three.js/three.js"></script>
+  <script src="libs/keyframe.js/keyframe.js"></script>
   <script src="wav.js"></script>
   <script src="ppm.js"></script>
+  <script src="threejsscene.js"></script>
   <script src="intermediate.js"></script>
 </head>
 <body>
@@ -19,5 +22,12 @@
   <input id="image" type="file" />
   <div id="result"></div>
   <a id="downloadLink" style="display: none">Download</a>
+
+  <div id="container">
+    <canvas id="webglcanvas" width="600" height="600"></canvas>
+    <div id="title">
+        ThreejsAnimation
+    </div>
+  </div>
 </body>
 </html>

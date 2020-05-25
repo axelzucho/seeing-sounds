@@ -1,0 +1,28 @@
+{
+  "name": "seeing-sounds",
+  "version": "1.0.0",
+  "description": "",
+  "main": "arrayBufferOps.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/axelzucho/seeing-sounds.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/axelzucho/seeing-sounds/issues"
+  },
+  "homepage": "https://github.com/axelzucho/seeing-sounds#readme",
+  "dependencies": {
+    "i": "^0.3.6",
+    "ppm-bin": "^1.0.1"
+  },
+  "devDependencies": {
+    "exports-loader": "^0.7.0",
+    "imports-loader": "^0.8.0",
+    "webpack": "^4.43.0"
+  }
+}
