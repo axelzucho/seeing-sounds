@@ -10,12 +10,19 @@ class ThreeJs {
     scene = {};
     root = {};
     objs = [];
+    audio = {};
     allAnimations = [];
     ambientLight = {};
 
     constructor(intermediate) {
         this.intermediate = intermediate;
         this.canvas = document.getElementById("webglcanvas");
+        let wav = new Wav();
+        wav.fromInterm(intermediate);
+        let audioBlob = wav.toFile("audio.wav");
+        this.audio = new Audio(audioBlob);
+        this.audio.play();
+        this.audio.loop = true;
         obj = this;
     }
 
