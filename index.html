@@ -7,8 +7,11 @@
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="arrayBufferOps.js"></script>
+  <script src="libs/three.js/three.js"></script>
+  <script src="libs/keyframe.js/keyframe.js"></script>
   <script src="wav.js"></script>
   <script src="ppm.js"></script>
+  <script src="threejsscene.js"></script>
   <script src="intermediate.js"></script>
   <script src="lib/radianToDegree.js"></script>
   <script src="lib/ComplexNumber.js"></script>
@@ -24,5 +27,12 @@
   <div id="result"></div>
   <a id="downloadLink" style="display: none">Download</a>
   <a id="getFile" style="display: none">Get file</a>
+
+  <div id="container">
+    <canvas id="webglcanvas" width="600" height="600"></canvas>
+    <div id="title">
+        ThreejsAnimation
+    </div>
+  </div>
 </body>
 </html>

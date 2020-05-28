@@ -42,6 +42,9 @@ $(function () {
       link.href = wav.toFile("audio.wav");
       link.download = "audio.wav";
       link.style.display = 'block';
+      var threejs = new ThreeJs(ppm.toInterm());
+      threejs.createScene();
+      threejs.run();
     };
     reader.readAsArrayBuffer(this.files[0]);
 
