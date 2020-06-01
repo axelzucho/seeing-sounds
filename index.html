@@ -13,6 +13,10 @@
   <script src="ppm.js"></script>
   <script src="threejsscene.js"></script>
   <script src="intermediate.js"></script>
+  <script src="lib/radianToDegree.js"></script>
+  <script src="lib/ComplexNumber.js"></script>
+  <script src="lib/inverseDiscreteFourierTransform.js"></script>
+  <script src="lib/discreteFourierTransform.js"></script>
 </head>
 <body>
   Submit audio:
@@ -22,6 +26,7 @@
   <input id="image" type="file" />
   <div id="result"></div>
   <a id="downloadLink" style="display: none">Download</a>
+  <a id="getFile" style="display: none">Get file</a>
 
   <div id="container">
     <canvas id="webglcanvas" width="600" height="600"></canvas>

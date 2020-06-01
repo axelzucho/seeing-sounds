@@ -114,6 +114,9 @@ class Wav {
       left.push(decToValue(this.data.slice(i, i+2)));
       right.push(decToValue(this.data.slice(i+2, i+4)));
     }
+    console.log(left)
+    console.log(right)
+    download(left, "left.txt");
   }
 
   getSlice(start, end) {
@@ -177,6 +180,69 @@ class Wav {
     return samples;
   }
 
+  audioFromSamples() {
+    var samples = [];
+    var chunkSize = 500;
+
+    var max = arrayMax(this.audioData);
+    for (var i = 0; i < this.audioData.length; i+=chunkSize) {
+      var slice = this.audioData.slice(i, i+chunkSize);
+      var avg = 0;
+      var currMin = max;
+      var currMax = 0;
+      for (var j = 0; j < slice.length; j++) {
+        var curr = slice[j];
+        currMin = curr < currMin ? curr : currMin;
+        currMax = curr > currMax ? curr : currMax;
+        avg += slice[j];
+      }
+      avg /= chunkSize;
+
+      var amplitudes = new Array(chunkSize).fill(0);
+      var phases = new Array(chunkSize).fill(0);
+      var avgIndex = Math.floor(avg * (chunkSize-1) / max);
+      var minIndex = Math.floor(currMin * (chunkSize-1) / max);
+      var maxIndex = Math.floor(currMax * (chunkSize-1) / max);
+      // Melody
+      amplitudes[avgIndex] = 200 * 2 * Math.PI;
+      // Bass
+      amplitudes[minIndex] = 1000 * 2 * Math.PI;
+      // High notes
+      amplitudes[maxIndex] = 200 * 2 * Math.PI;
+
+      var s = this.getWave(amplitudes,phases);
+      for (var j = 0; j < s.length; j++) {
+        var leftArr = valueToDec(s[j]);
+        var rightArr = valueToDec(s[j]);
+        samples.push(leftArr[0], leftArr[1], rightArr[0], rightArr[1]);
+      }
+    }
+    samples = Uint8Array.from(samples);
+    return samples;
+  }
+
+  getWave(a, p) {
+    if (a.length != p.length) {
+      throw new Error('Bucket sizes should be equal');
+    }
+    var freq = [];
+    for (var i = 0; i < a.length; i++) {
+      var real = a[i] * Math.cos(p[i]);
+      var imag = a[i] * Math.sin(p[i]);
+      freq.push(new ComplexNumber({re:real, im:imag}));
+    }
+    var samples = inverseDiscreteFourierTransform(freq);
+    // var freq2 = dft(samples);
+    var min = Math.abs(Math.min(...samples))
+    var samples = samples.map(x => Math.floor(x + min));
+    return samples
+  }
+
+  sineWave(n, a, f) {
+    var t = n / decToValue(this.header.sampleRate);
+    return Math.floor(a * (Math.sin(2 * Math.PI * f * t) + 1));
+  }
+
   getOutputHeader() {
     var result = [];
     result.push(...this.header.riff);
@@ -199,7 +265,7 @@ class Wav {
     var outputHeader = this.getOutputHeader();
     var arrayData = [];
     if (this.data.length == 0) {
-      arrayData = this.separateSamples();
+      arrayData = this.audioFromSamples();
     } else {
       arrayData = this.data;
     }
@@ -287,4 +353,22 @@ function buf2hex(buffer) { // buffer is an ArrayBuffer
 
 function dec2hex(arr) { // arr is a decimal array
   return Array.prototype.map.call(arr, x => ('00' + x.toString(16)).slice(-2));
+}
+
+function download(text, name) {
+  var a = document.getElementById("getFile");
+  var file = new Blob([text]);
+  a.href = URL.createObjectURL(file);
+  a.style.display = 'block';
+  a.download = name;
+}
+
+function arrayMax(arr) {
+  var max = -Number.MAX_VALUE;
+  arr.forEach(function(e) {
+      if (max < e) {
+          max = e;
+      }
+  });
+  return max;
 }
