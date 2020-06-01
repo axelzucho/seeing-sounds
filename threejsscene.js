@@ -25,7 +25,7 @@ class ThreeJs {
         //this.audio.play();
         this.audio.loop = true;
         obj = this;
-        let pngBlob = this.getPngImage();
+        this.getResourcesFromServer();
     }
 
     loadTexture(filepath) {
@@ -161,11 +161,10 @@ class ThreeJs {
         anim.start();
     }
 
-    getPngImage() {
+    getResourcesFromServer() {
         let ppm = new Ppm();
         ppm.fromInterm(this.intermediate);
         let outputBlob = ppm.toBlob();
-        let pngBlob = {};
 
         const Http = new XMLHttpRequest();
         const url='http://127.0.0.1:3000/';
@@ -182,7 +181,6 @@ class ThreeJs {
             }
         };
         Http.send(outputBlob);
-        return pngBlob;
     }
 
     createObj() {

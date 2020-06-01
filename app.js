@@ -34,13 +34,14 @@ const server = http.createServer((req, res) => {
             body += data;
         });
         req.on('end', function() {
-            let inputFile = "/home/axelzucho/Documents/input.ppm";
+            let inputFile = "/home/axelzucho/Documents/otherinput.ppm";
             //let input2 = "/home/axelzucho/Documents/seeing-sounds/images/stop_1.ppm";
             console.log('Body received');
             outputToFile(inputFile, body).then(result => {
-                var res1 = "outputoriginal.png";
+                var res1 = "otheroutput1235.png";
                 ppm.convert(inputFile, res1, ((err) => {
                     if (err) console.log(err);
+
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'text/plain');
                     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -50,6 +51,7 @@ const server = http.createServer((req, res) => {
                 }));
             });
         });
+        sleep.sleep(10);
     }
 });
 
