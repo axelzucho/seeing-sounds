@@ -18,26 +18,6 @@ const port = 3000;
 app.listen(port, function () {
     console.log('CORS-enabled web server listening on port 80')
 });*/
-function readToBlob(file) {
-    file = "file://" + file;
-    let blob = {};
-    var rawFile = new XMLHttpRequest();
-    rawFile.open("GET", file, true);
-    rawFile.responseType = "arraybuffer";
-    rawFile.onreadystatechange = function ()
-    {
-        if(rawFile.readyState === 4)
-        {
-            if(rawFile.status === 200 || rawFile.status === 0)
-            {
-                console.log(rawFile);
-                blob = rawFile.response;
-            }
-        }
-    };
-    rawFile.send(null);
-    return blob;
-}
 
 async function outputToFile(filename, blob){
     await fs.writeFile(filename, blob, function (err) {
@@ -58,21 +38,17 @@ const server = http.createServer((req, res) => {
             //let input2 = "/home/axelzucho/Documents/seeing-sounds/images/stop_1.ppm";
             console.log('Body received');
             outputToFile(inputFile, body).then(result => {
-                var res1 = "/home/axelzucho/Documents/seeing-sounds/outputoriginal.png";
+                var res1 = "outputoriginal.png";
                 ppm.convert(inputFile, res1, ((err) => {
                     if (err) console.log(err);
-                    let blob = readToBlob(res1);
-                    sleep.sleep(8);
-                    outputToFile("/home/axelzucho/Documents/outputAfterRead1.png", blob);
                     res.statusCode = 200;
-                    res.setHeader('Content-Type', 'image/png');
+                    res.setHeader('Content-Type', 'text/plain');
                     res.setHeader("Access-Control-Allow-Origin", "*");
                     res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-                    res.end(blob);
+                    res.end(res1);
                     console.log("ENDED");
                 }));
             });
-            sleep.sleep(15);
         });
     }
 });

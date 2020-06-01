@@ -174,16 +174,7 @@ class ThreeJs {
         Http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
         Http.onreadystatechange = function() {//Call a function when the state changes.
             if(Http.readyState === 4 && Http.status === 200) {
-                pngBlob = new Blob([StringToArrayBuffer(Http.responseText)]);
-                pngBlob.text().then(text => console.log("BLOB: " + text));
-                console.log(pngBlob);
-                let filepath = window.URL.createObjectURL(pngBlob);
-                var link = document.getElementById("downloadLink");
-                link.href = filepath;
-                link.download = "someOutput.png";
-                link.style.display = 'block';
-                console.log(filepath);
-                //obj.loadTexture("outputoriginal1.png");
+                let filepath = Http.responseText;
                 obj.loadTexture(filepath);
                 obj.createScene();
                 obj.createObj();
