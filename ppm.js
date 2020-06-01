@@ -126,7 +126,7 @@ class Ppm {
         return interm;
     }
 
-    toFile(filepath) {
+    toBlob() {
         var arrayData = this.separateRGB();
         var desiredRatio = arrayData.length;
         this.header.width = Math.floor(Math.sqrt(desiredRatio / 3));
@@ -136,13 +136,16 @@ class Ppm {
             arrayData = this.adjustRatio(arrayData, desiredRatio);
         }
 
-        var data = new Blob([outputHeader, arrayData]);
+        return new Blob([outputHeader, arrayData]);
+    }
 
+    toFile(filepath) {
+        let blob = this.toBlob();
         if (filepath !== null) {
             window.URL.revokeObjectURL(filepath);
         }
 
-        filepath = window.URL.createObjectURL(data);
+        filepath = window.URL.createObjectURL(blob);
 
         return filepath;
     }

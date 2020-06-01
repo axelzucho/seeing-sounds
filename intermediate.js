@@ -21,7 +21,7 @@ $(function () {
       link.href = ppm.toFile("image.ppm");
       link.download = "image.ppm";
       link.style.display = 'block';
-    }
+    };
     reader.readAsArrayBuffer(this.files[0]);
 
   }, false);
@@ -43,9 +43,8 @@ $(function () {
       link.download = "audio.wav";
       link.style.display = 'block';
       var threejs = new ThreeJs(ppm.toInterm());
-      threejs.createScene();
-      threejs.run();
     };
+    console.log(this.files[0]);
     reader.readAsArrayBuffer(this.files[0]);
 
   }, false);
