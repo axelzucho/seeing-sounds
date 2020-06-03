@@ -176,8 +176,7 @@ class Ppm {
     toInterm() {
         var interm = new Intermediate();
         let rate = 32000;
-        let chunks = this.chunkify(this.data, 10);
-        interm.data = this.dechunkify(chunks, 10);
+        interm.data = this.data;
         interm.rate = rate;
         return interm;
     }

@@ -52,7 +52,6 @@ class Wav {
 
   fromInterm(interm) {
     this.audioData = interm.data;
-    this.repeat = 10;
     this.header = this.genHeader(interm);
     this.printHeader();
   }
@@ -70,7 +69,7 @@ class Wav {
   // Block align: 4 (bytes per sample)
   // Bits per sample: 16 (bits per sample per channel)
   genHeader(interm) {
-    var length = interm.data.length * 4 * this.repeat;
+    var length = interm.data.length * 4;
     var rate = interm.rate;
     var header = {
       "riff": [82, 73, 70, 70],
@@ -184,7 +183,7 @@ class Wav {
 
   audioFromSamples() {
     var samples = [];
-    var chunkSize = 100;
+    var chunkSize = 500;
 
     var max = arrayMax(this.audioData);
     for (var i = 0; i < this.audioData.length; i+=chunkSize) {
@@ -212,7 +211,7 @@ class Wav {
       // High notes
       amplitudes[maxIndex] = 200 * 2 * Math.PI;
 
-      var s = this.getWave(amplitudes, phases, this.repeat);
+      var s = this.getWave(amplitudes, phases);
       for (var j = 0; j < s.length; j++) {
         var leftArr = valueToDec(s[j]);
         var rightArr = valueToDec(s[j]);
@@ -223,7 +222,7 @@ class Wav {
     return samples;
   }
 
-  getWave(a, p, repeat) {
+  getWave(a, p) {
     if (a.length != p.length) {
       throw new Error('Bucket sizes should be equal');
     }
@@ -237,11 +236,7 @@ class Wav {
     // var freq2 = dft(samples);
     var min = Math.abs(Math.min(...samples))
     var samples = samples.map(x => Math.floor(x + min));
-    let res = [];
-    for (let i = 0; i < repeat; i++) {
-      res.push(...samples);
-    }
-    return res;
+    return samples;
   }
 
   sineWave(n, a, f) {
