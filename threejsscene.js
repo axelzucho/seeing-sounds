@@ -11,6 +11,7 @@ class ThreeJs {
     root = {};
     objs = [];
     audio = {};
+    material = null;
     allAnimations = [];
     ambientLight = {};
 
@@ -21,15 +22,22 @@ class ThreeJs {
         wav.fromInterm(intermediate);
         let audioBlob = wav.toFile("audio.wav");
         this.audio = new Audio(audioBlob);
-        this.audio.play();
+        //this.audio.play();
         this.audio.loop = true;
         obj = this;
+        this.getResourcesFromServer();
+    }
+
+    loadTexture(filepath) {
+        let texture = new THREE.TextureLoader().load(filepath);
+        this.material = new THREE.MeshBasicMaterial({map: texture});
+        console.log(this.material);
     }
 
     createScene() {
         this.renderer = new THREE.WebGLRenderer({canvas: this.canvas, antialias: true});
 
-        // Set the viewport size
+        // Set the viewport siz
         this.renderer.setSize(this.canvas.width, this.canvas.height);
 
         // Create a new Three.js scene
@@ -50,7 +58,6 @@ class ThreeJs {
         this.root.add(this.ambientLight);
 
         this.scene.add(this.root);
-        this.createObj();
     }
 
     getNPoints(n) {
@@ -154,12 +161,33 @@ class ThreeJs {
         anim.start();
     }
 
+    getResourcesFromServer() {
+        let ppm = new Ppm();
+        ppm.fromInterm(this.intermediate);
+        let outputBlob = ppm.toBlob();
+
+        const Http = new XMLHttpRequest();
+        const url='http://127.0.0.1:3000/';
+        Http.open("POST", url, true);
+
+        Http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        Http.onreadystatechange = function() {//Call a function when the state changes.
+            if(Http.readyState === 4 && Http.status === 200) {
+                let filepath = Http.responseText;
+                obj.loadTexture(filepath);
+                obj.createScene();
+                obj.createObj();
+                obj.run();
+            }
+        };
+        Http.send(outputBlob);
+    }
+
     createObj() {
         let geometry = new THREE.SphereGeometry(1, 20, 20);
-        let material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
 
         // And put the geometry and material together into a mesh
-        let sphere = new THREE.Mesh(geometry, material);
+        let sphere = new THREE.Mesh(geometry, this.material);
         sphere.position.set(0, 0, 5);
         this.objs.push(sphere);
 

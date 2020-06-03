@@ -17,11 +17,17 @@
   },
   "homepage": "https://github.com/axelzucho/seeing-sounds#readme",
   "dependencies": {
+    "express": "^4.17.1",
     "i": "^0.3.6",
-    "ppm-bin": "^1.0.1"
+    "node-fetch": "^2.6.0",
+    "ppm-bin": "^1.0.1",
+    "sleep": "^6.2.0",
+    "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
+    "cors": "^2.8.5",
     "exports-loader": "^0.7.0",
+    "filereader": "^0.10.3",
     "imports-loader": "^0.8.0",
     "webpack": "^4.43.0"
   }
