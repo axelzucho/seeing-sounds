@@ -65,9 +65,13 @@ class Ppm {
 
     toIntArray(slice) {
         for (var i = 0; i < slice.length - 2; i += 3) {
-            var result = (slice[i + 2] << 16 | slice[i + 1] << 8 | slice[i]);
+            var result = this.getIntFromRGB(slice[i], slice[i + 1], slice[i + 2]);
             this.data.push(result);
         }
+    }
+
+    getIntFromRGB(r, g, b) {
+        return (b << 16 | g << 8 | r);
     }
 
     getRGBFromInt(pix) {
@@ -119,10 +123,62 @@ class Ppm {
         return newPixelData;
     }
 
+    getChunkIndex(i, width, chunkWidth) {
+        let col = Math.floor((i % width) / chunkWidth);
+        let maxChunk = Math.floor(width / chunkWidth);
+        if (col >= maxChunk) {
+            return -1;
+        }
+        let row = Math.floor(i / (chunkWidth * width));
+        if (row >= maxChunk) {
+            return -1;
+        }
+        row = row * Math.floor(width / chunkWidth);
+        return col + row;
+    }
+
+    chunkify(data, chunkWidth) {
+        const width = Math.sqrt(data.length);
+        const chunkSize = chunkWidth * chunkWidth;
+        const newLength = Math.floor(data.length / chunkSize);
+        let newData = Array(newLength).fill().map(() => Array(3).fill(0));
+        for (let i = 0; i < data.length; i++) {
+            let index = this.getChunkIndex(i, width, chunkWidth);
+            if (index == -1) { continue; } // Overflow
+            let rgb = this.getRGBFromInt(data[i]);
+            rgb = Uint8Array.from(rgb);
+            newData[index][0] += rgb[0] / chunkSize; // R
+            newData[index][1] += rgb[1] / chunkSize; // G
+            newData[index][2] += rgb[2] / chunkSize; // B
+        }
+        let res = newData.map(pix => this.getIntFromRGB(pix[0], pix[1], pix[2]));
+        return res;
+    }
+
+    dechunkify(data, chunkWidth) {
+        const chunkSize = chunkWidth * chunkWidth;
+        const newLength = data.length * chunkSize;
+        const width = Math.floor(Math.sqrt(newLength));
+        let newData = Array(newLength).fill().map(() => Array(3).fill(0));
+        for (let i = 0; i < newData.length; i++) {
+            let index = this.getChunkIndex(i, width, chunkWidth);
+            if (index == -1) { continue; } // Overflow
+            let rgb = this.getRGBFromInt(data[index]);
+            rgb = Uint8Array.from(rgb);
+            newData[i][0] = rgb[0]; // R
+            newData[i][1] = rgb[1]; // G
+            newData[i][2] = rgb[2]; // B
+        }
+        let res = newData.map(pix => this.getIntFromRGB(pix[0], pix[1], pix[2]));
+        return res;
+    }
+
     toInterm() {
         var interm = new Intermediate();
-        interm.data = this.data;
-        interm.rate = 32000;
+        let rate = 32000;
+        let chunks = this.chunkify(this.data, 10);
+        interm.data = this.dechunkify(chunks, 10);
+        interm.rate = rate;
         return interm;
     }
 
