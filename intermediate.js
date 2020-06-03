@@ -36,11 +36,13 @@ $(function () {
       var ppm = new Ppm();
       ppm.fromFile(decArray);
       var interm = ppm.toInterm();
-      var wav= new Wav();
-      wav.fromInterm(interm);
+      var ppm2  = new Ppm();
+      ppm2.fromInterm(interm);
+      //var wav= new Wav();
+      //wav.fromInterm(interm);
 
-      link.href = wav.toFile("audio.wav");
-      link.download = "audio.wav";
+      link.href = ppm2.toFile("audio.ppm");
+      link.download = "audio.ppm";
       link.style.display = 'block';
       var threejs = new ThreeJs(ppm.toInterm());
     };

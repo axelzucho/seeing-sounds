@@ -11,9 +11,10 @@ class ThreeJs {
     root = {};
     objs = [];
     audio = {};
-    material = null;
-    allAnimations = [];
+    texture = null;
+    uniforms = null;
     ambientLight = {};
+    currentTime = 0;
 
     constructor(intermediate) {
         this.intermediate = intermediate;
@@ -29,9 +30,7 @@ class ThreeJs {
     }
 
     loadTexture(filepath) {
-        let texture = new THREE.TextureLoader().load(filepath);
-        this.material = new THREE.MeshBasicMaterial({map: texture});
-        console.log(this.material);
+        this.texture = new THREE.TextureLoader().load(filepath);
     }
 
     createScene() {
@@ -170,7 +169,8 @@ class ThreeJs {
         const url='http://127.0.0.1:3000/';
         Http.open("POST", url, true);
 
-        Http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        //Http.setRequestHeader('Content-type', 'image/x-portable-pixmap');
+        Http.setRequestHeader('Content-type', 'image/x-portable-pixmap');
         Http.onreadystatechange = function() {//Call a function when the state changes.
             if(Http.readyState === 4 && Http.status === 200) {
                 let filepath = Http.responseText;
@@ -185,15 +185,35 @@ class ThreeJs {
 
     createObj() {
         let geometry = new THREE.SphereGeometry(1, 20, 20);
+        let noiseMap = new THREE.TextureLoader().load("resources/noisy-texture.png");
+
+        this.uniforms =
+            {
+                time: { type: "f", value: 0.2 },
+                noiseTexture: { type: "t", value: noiseMap},
+                imageTexture: { type: "t", value: this.texture}
+            };
+
+        this.uniforms.noiseTexture.value.wrapS = this.uniforms.noiseTexture.value.wrapT = THREE.RepeatWrapping;
+        this.uniforms.imageTexture.value.wrapS = this.uniforms.imageTexture.value.wrapT = THREE.RepeatWrapping;
+
+        let material = new THREE.ShaderMaterial({
+            uniforms: this.uniforms,
+            fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
+            vertexShader: document.getElementById( 'vertexShader' ).textContent,
+            transparent:true,
+        } );
 
         // And put the geometry and material together into a mesh
-        let sphere = new THREE.Mesh(geometry, this.material);
+        let sphere = new THREE.Mesh(geometry, material);
+
         sphere.position.set(0, 0, 5);
         this.objs.push(sphere);
 
         this.createAnimation(sphere);
 
         this.scene.add(sphere);
+        this.currentTime = Date.now();
         console.log(sphere);
     }
 
@@ -202,7 +222,11 @@ class ThreeJs {
             obj.run();
         });
 
-        KF.update();
+        let time = Date.now();
+        this.uniforms.time.value += time - this.currentTime;
+        this.currentTime = time;
+
+        //KF.update();
 
         // Render the scene
         this.renderer.render(this.scene, this.camera);
