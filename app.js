@@ -19,14 +19,20 @@ app.listen(port, function () {
     console.log('CORS-enabled web server listening on port 80')
 });*/
 
+// TODO:
+// a. Color shader: Considering intermediate structure.
+// b. Post-Processing effect.
+// c. Change the client back to not need to initialize a server.
+
 async function outputToFile(filename, blob){
-    await fs.writeFile(filename, blob, function (err) {
+    await fs.writeFile(filename, blob, 'binary', function (err) {
         if (err) return console.log(err);
     });
     return true;
 }
 
 const server = http.createServer((req, res) => {
+    console.log(req.method);
     if (req.method === 'POST') {
         console.log('POST');
         var body = '';
@@ -34,10 +40,11 @@ const server = http.createServer((req, res) => {
             body += data;
         });
         req.on('end', function() {
-            let inputFile = "/home/axelzucho/Documents/otherinput.ppm";
-            //let input2 = "/home/axelzucho/Documents/seeing-sounds/images/stop_1.ppm";
+            let inputFile = "/home/axelzucho/Documents/seeing-sounds/otherinput.ppm";
+            let input2 = "/home/axelzucho/Documents/seeing-sounds/images/stop_1.ppm";
             console.log('Body received');
             outputToFile(inputFile, body).then(result => {
+                sleep.sleep(2);
                 var res1 = "otheroutput1235.png";
                 ppm.convert(inputFile, res1, ((err) => {
                     if (err) console.log(err);
@@ -51,7 +58,16 @@ const server = http.createServer((req, res) => {
                 }));
             });
         });
-        sleep.sleep(10);
+        sleep.sleep(20);
+    }
+    else if (req.method === 'OPTIONS') {
+        console.log(req.method);
+        //res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
+        res.statusCode = 200;
+        res.end();
     }
 });
 

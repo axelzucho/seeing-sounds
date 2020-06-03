@@ -17,6 +17,57 @@
   <script src="lib/ComplexNumber.js"></script>
   <script src="lib/inverseDiscreteFourierTransform.js"></script>
   <script src="lib/discreteFourierTransform.js"></script>
+
+  <script id="fragmentShader" type="x-shader/x-fragment">
+
+
+	uniform float time;
+
+	varying vec2 texCoord;
+	uniform sampler2D noiseTexture;
+	uniform sampler2D imageTexture;
+
+	void main( void ) {
+
+		vec2 position = texCoord;
+		// Loading the first texture.
+		highp vec4 noise = texture2D(noiseTexture, texCoord)*255.0;
+		// Loading the second texture.
+		highp vec4 bright = texture2D( imageTexture, texCoord)*255.0;
+
+        // This float will control how much of each texture is shown.
+        float proportion = 0.0;
+        // This will reduce some of the noise in the image. It will make it more likely for the first texture to be more
+        // active than the second.
+		float offset = 1.2;
+		// Some operations dependant on the position and time.
+		proportion += sin( position.x * abs(cos( time / 1.50 )) * 80.0 ) + cos( position.y * cos( time / 1.50 ) * 10.0 );
+		proportion += sin( position.y * sin( time / 1.0 ) * 40.0 ) + cos( position.x * sin( time / 2.50 ) * 40.0 );
+		proportion += sin( position.x * sin( time / 0.5 ) * 10.0 ) + sin( position.y * sin( time / 3.50 ) * 80.0 );
+        proportion *= sin( time / 11.0 ) * 0.5;
+		proportion += offset; proportion /= (1.0 + offset);
+
+        // Show the calculated proportion of each texture.
+        highp vec4 color = (noise * proportion + bright * (1.0 - proportion))/255.0;
+		gl_FragColor = color;
+
+	}
+
+</script>
+
+  <script id="vertexShader" type="x-shader/x-vertex">
+
+	varying vec2 texCoord;
+
+	void main()
+	{
+		texCoord = uv;
+		vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+		gl_Position = projectionMatrix * mvPosition;
+	}
+
+</script>
+
 </head>
 <body>
   Submit audio:
