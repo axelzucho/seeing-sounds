@@ -28,7 +28,7 @@ class Ppm {
         this.header.width = 100;
         this.header.height = 100;
         this.header.max_val = 255;
-        this.data = interm.data;
+        this.data = this.toLines(interm.data);
         this.checkHeader();
     }
 
@@ -171,6 +171,16 @@ class Ppm {
         }
         let res = newData.map(pix => this.getIntFromRGB(pix[0], pix[1], pix[2]));
         return res;
+    }
+
+    toLines(data) {
+        let newData = [];
+        for (let i = 0; i < data.length; i++) {
+            for (let j = 0; j < data.length; j++) {
+                newData.push(data[i]);
+            }
+        }
+        return newData;
     }
 
     toInterm() {
