@@ -28,7 +28,8 @@ class Ppm {
         this.header.width = 100;
         this.header.height = 100;
         this.header.max_val = 255;
-        this.data = this.toLines(interm.data);
+        //this.data = this.toLines(interm.data);
+        this.data = interm.data;
         this.checkHeader();
     }
 

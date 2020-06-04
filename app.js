@@ -12,14 +12,6 @@ var atob = require('atob');
 const hostname = '127.0.0.1';
 const port = 3000;
 
-/*app.get('/products/:id', cors(), function (req, res, next) {
-    res.json({msg: 'This is CORS-enabled for a Single Route'})
-});
-
-app.listen(port, function () {
-    console.log('CORS-enabled web server listening on port 80')
-});*/
-
 // TODO:
 // a. Color shader: Considering intermediate structure.
 // b. Post-Processing effect.
@@ -34,27 +26,16 @@ const server = http.createServer((req, res) => {
         req.setEncoding('base64');
         console.log('POST');
         var body = Buffer.from([]);
-        //var body = '';
-        //var body;
         req.on('data', function(data) {
             let buff = Buffer.from(data, 'base64');
-            //console.log(data);
-           // body = data;
-            //console.log(body);
-            console.log("ENTER");
             body = Buffer.concat([body, buff]);
-            //body += data;
         });
         req.on('end', function() {
-            //console.log(atob(body));
-            //var data2 = Buffer.from(body, 'base64');
             var binaryBuffer = new Buffer(body.toString('binary'), 'base64');
-            //console.log(atob(binaryBuffer.toString()));
             console.log(body);
             let inputFile = "/home/axelzucho/Documents/seeing-sounds/otherinput.ppm";
             let input2 = "/home/axelzucho/Documents/seeing-sounds/images/stop_1.ppm";
             console.log('Body received');
-            //console.log(body.toString('ascii'));
             outputToFile(inputFile, binaryBuffer);
                 var res1 = "otheroutput1235.png";
                 ppm.convert(inputFile, res1, ((err) => {
@@ -72,7 +53,6 @@ const server = http.createServer((req, res) => {
     }
     else if (req.method === 'OPTIONS') {
         console.log(req.method);
-        //res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
