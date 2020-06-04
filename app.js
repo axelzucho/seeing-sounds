@@ -49,7 +49,6 @@ const server = http.createServer((req, res) => {
                     console.log("ENDED");
                 }));
         });
-        sleep.sleep(10);
     }
     else if (req.method === 'OPTIONS') {
         console.log(req.method);
