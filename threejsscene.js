@@ -164,13 +164,15 @@ class ThreeJs {
         let ppm = new Ppm();
         ppm.fromInterm(this.intermediate);
         let outputBlob = ppm.toBlob();
+        let outputF = ppm.toFile();
 
         const Http = new XMLHttpRequest();
         const url='http://127.0.0.1:3000/';
         Http.open("POST", url, true);
 
         //Http.setRequestHeader('Content-type', 'image/x-portable-pixmap');
-        Http.setRequestHeader('Content-type', 'image/x-portable-pixmap');
+        //Http.responseType = "arraybuffer";
+        Http.setRequestHeader('Content-type', 'blob');
         Http.onreadystatechange = function() {//Call a function when the state changes.
             if(Http.readyState === 4 && Http.status === 200) {
                 let filepath = Http.responseText;
@@ -180,7 +182,45 @@ class ThreeJs {
                 obj.run();
             }
         };
-        Http.send(outputBlob);
+        let reader = new FileReader();
+        reader.readAsDataURL(outputBlob);
+        //reader.readAsArrayBuffer(outputBlob);
+        reader.onloadend = function() {
+            let b64 = reader.result.replace(/^data:.+;base64,/, '');
+            //let b64 = reader.result;
+            //console.log(b64);
+            //console.log(reader.result);
+            //console.log(base64data);
+            Http.send(b64);
+            //Http.send(b64.split(',')[1]);
+            //var byteString = atob(b64.split(',')[1]);
+
+            // separate out the mime component
+            //var mimeString = b64.split(',')[0].split(':')[1].split(';')[0]
+            //var html = atob(b64);
+
+            // write the bytes of the string to an ArrayBuffer
+            //var ab = new ArrayBuffer(byteString.length);
+            //var ia = new Uint8Array(ab);
+            //for (var i = 0; i < byteString.length; i++) {
+                //ia[i] = byteString.charCodeAt(i);
+            //}
+
+            // write the ArrayBuffer to a blob, and you're done
+            //var blob = new Blob([ab]);
+
+            //let filepath = window.URL.createObjectURL(blob);
+            //let filepath = window.URL.createObjectURL(outputBlob);
+
+            //let link = document.getElementById("downloadLink");
+            //link.href = outputF;
+            //link.download = "grandtest.ppm";
+            //link.style.display = 'block';
+
+            //console.log(html);
+        };
+        //Http.send(outputBlob);
+
     }
 
     createObj() {

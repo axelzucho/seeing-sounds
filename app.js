@@ -7,6 +7,7 @@ const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const sleep = require('sleep');
 const FileReader = require('filereader');
 var app = express();
+var atob = require('atob');
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -24,27 +25,37 @@ app.listen(port, function () {
 // b. Post-Processing effect.
 // c. Change the client back to not need to initialize a server.
 
-async function outputToFile(filename, blob){
-    await fs.writeFile(filename, blob, 'binary', function (err) {
-        if (err) return console.log(err);
-    });
-    return true;
+function outputToFile(filename, blob){
+    fs.writeFileSync(filename, blob, "binary");
 }
 
 const server = http.createServer((req, res) => {
-    console.log(req.method);
     if (req.method === 'POST') {
+        req.setEncoding('base64');
         console.log('POST');
-        var body = '';
+        var body = Buffer.from([]);
+        //var body = '';
+        //var body;
         req.on('data', function(data) {
-            body += data;
+            let buff = Buffer.from(data, 'base64');
+            //console.log(data);
+           // body = data;
+            //console.log(body);
+            console.log("ENTER");
+            body = Buffer.concat([body, buff]);
+            //body += data;
         });
         req.on('end', function() {
+            //console.log(atob(body));
+            //var data2 = Buffer.from(body, 'base64');
+            var binaryBuffer = new Buffer(body.toString('binary'), 'base64');
+            //console.log(atob(binaryBuffer.toString()));
+            console.log(body);
             let inputFile = "/home/axelzucho/Documents/seeing-sounds/otherinput.ppm";
             let input2 = "/home/axelzucho/Documents/seeing-sounds/images/stop_1.ppm";
             console.log('Body received');
-            outputToFile(inputFile, body).then(result => {
-                sleep.sleep(2);
+            //console.log(body.toString('ascii'));
+            outputToFile(inputFile, binaryBuffer);
                 var res1 = "otheroutput1235.png";
                 ppm.convert(inputFile, res1, ((err) => {
                     if (err) console.log(err);
@@ -56,9 +67,8 @@ const server = http.createServer((req, res) => {
                     res.end(res1);
                     console.log("ENDED");
                 }));
-            });
         });
-        sleep.sleep(20);
+        sleep.sleep(10);
     }
     else if (req.method === 'OPTIONS') {
         console.log(req.method);
