@@ -28,7 +28,7 @@ class Ppm {
         this.header.width = 100;
         this.header.height = 100;
         this.header.max_val = 255;
-        this.data = interm.data;
+        this.data = this.toLines(interm.data);
         this.checkHeader();
     }
 
@@ -173,11 +173,20 @@ class Ppm {
         return res;
     }
 
+    toLines(data) {
+        let newData = [];
+        for (let i = 0; i < data.length; i++) {
+            for (let j = 0; j < data.length; j++) {
+                newData.push(data[i]);
+            }
+        }
+        return newData;
+    }
+
     toInterm() {
         var interm = new Intermediate();
         let rate = 32000;
-        let chunks = this.chunkify(this.data, 10);
-        interm.data = this.dechunkify(chunks, 10);
+        interm.data = this.data;
         interm.rate = rate;
         return interm;
     }

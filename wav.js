@@ -47,12 +47,12 @@ class Wav {
     this.addData();
     this.checkMetaData();
     this.printHeader();
-    this.toIntArray();
+    this.getFrequencies();
+    // this.toIntArray();
   }
 
   fromInterm(interm) {
     this.audioData = interm.data;
-    this.repeat = 10;
     this.header = this.genHeader(interm);
     this.printHeader();
   }
@@ -70,7 +70,7 @@ class Wav {
   // Block align: 4 (bytes per sample)
   // Bits per sample: 16 (bits per sample per channel)
   genHeader(interm) {
-    var length = interm.data.length * 4 * this.repeat;
+    var length = interm.data.length * 4;
     var rate = interm.rate;
     var header = {
       "riff": [82, 73, 70, 70],
@@ -110,15 +110,6 @@ class Wav {
     this.header.data = this.getSlice(36, 40);
     this.header.subchunk2Size = this.getSlice(40, 44);
     this.data = this.getSlice(44, 44 + decToValue(this.header.subchunk2Size));
-    var left = [];
-    var right = [];
-    for (var i = 0; i < this.data.length; i+=4) {
-      left.push(decToValue(this.data.slice(i, i+2)));
-      right.push(decToValue(this.data.slice(i+2, i+4)));
-    }
-    console.log(left)
-    console.log(right)
-    download(left, "left.txt");
   }
 
   getSlice(start, end) {
@@ -149,7 +140,7 @@ class Wav {
     return 0;
   }
 
-  // Splits 32bit int array into 8bit array
+  // Merges 8 bit values into 32 bit array
   toIntArray() {
     for (var i = 0; i < this.data.length - 3; i += 4) {
       var result = (this.data[i + 3] << 24
@@ -161,6 +152,7 @@ class Wav {
   }
 
 
+  // Splits 32bit int array into 8bit array
   getSampleFromInt(sample) {
     var result = [];
     var base = 255;
@@ -184,11 +176,11 @@ class Wav {
 
   audioFromSamples() {
     var samples = [];
-    var chunkSize = 100;
+    var chunkSize = 500;
 
     var max = arrayMax(this.audioData);
-    for (var i = 0; i < this.audioData.length; i+=chunkSize) {
-      var slice = this.audioData.slice(i, i+chunkSize);
+    for (var i = 0; i < this.audioData.length; i += chunkSize) {
+      var slice = this.audioData.slice(i, i + chunkSize);
       var avg = 0;
       var currMin = max;
       var currMax = 0;
@@ -202,9 +194,9 @@ class Wav {
 
       var amplitudes = new Array(chunkSize).fill(0);
       var phases = new Array(chunkSize).fill(0);
-      var avgIndex = Math.floor(avg * (chunkSize-1) / max);
-      var minIndex = Math.floor(currMin * (chunkSize-1) / max);
-      var maxIndex = Math.floor(currMax * (chunkSize-1) / max);
+      var avgIndex = Math.floor(avg * (chunkSize - 1) / max);
+      var minIndex = Math.floor(currMin * (chunkSize - 1) / max);
+      var maxIndex = Math.floor(currMax * (chunkSize - 1) / max);
       // Melody
       amplitudes[avgIndex] = 200 * 2 * Math.PI;
       // Bass
@@ -212,7 +204,7 @@ class Wav {
       // High notes
       amplitudes[maxIndex] = 200 * 2 * Math.PI;
 
-      var s = this.getWave(amplitudes, phases, this.repeat);
+      var s = this.getWave(amplitudes, phases);
       for (var j = 0; j < s.length; j++) {
         var leftArr = valueToDec(s[j]);
         var rightArr = valueToDec(s[j]);
@@ -223,7 +215,58 @@ class Wav {
     return samples;
   }
 
-  getWave(a, p, repeat) {
+  getFrequencies() {
+    const chunkSize = 2048;
+    var left = [];
+    var right = [];
+
+    for (var i = 0; i < this.data.length; i += 4) {
+      left.push(decToValue(this.data.slice(i, i + 2)));
+      right.push(decToValue(this.data.slice(i + 2, i + 4)));
+    }
+
+    let indices = [];
+
+    for (let i = 0; i < left.length; i+=chunkSize) {
+      let slice = left.slice(i, i+chunkSize);
+      let maxFreqs = this.getMaxFreq(slice, 1);
+      let maxFreq = maxFreqs.map(v => v.amp * v.freq);
+      indices.push(...maxFreq);
+    }
+
+    const minColor = 0;
+    const maxColor = 16777215; // Max RGB value: 0xFFFFFF
+    const minFreq = Math.log(5000);
+    const maxFreq = Math.log(22000); // Max frequency on this scale
+    
+    // Apply log to frequencies
+    let logVals = indices.map(v => Math.log(v));
+    // Normalize to RGB range
+    let rgbVals = logVals.map(v => mapVals(v, minFreq, maxFreq, minColor, maxColor));
+
+    this.audioData = rgbVals;
+  }
+
+  getMaxFreq(slice, n) {
+    const mult = 100;
+    let complexSlice = slice.map(x => new ComplexNumber({re:x}));
+    let freqs = fastFourierTransform(complexSlice);
+    freqs = freqs.slice(1, Math.floor(freqs.length/2));
+    let absFreqs = freqs.map(val => val.getRadius());
+    let dataIndex = absFreqs.map((v, i) => [v, i]);
+    dataIndex.sort(cmp);
+    dataIndex = dataIndex.slice(0, n);
+    // Frequencies are log scaled
+    dataIndex = dataIndex.map(function(v) {
+      return {
+        amp: v[0],
+        freq: v[1] * mult
+      }
+    });
+    return dataIndex;
+  }
+
+  getWave(a, p) {
     if (a.length != p.length) {
       throw new Error('Bucket sizes should be equal');
     }
@@ -231,22 +274,22 @@ class Wav {
     for (var i = 0; i < a.length; i++) {
       var real = a[i] * Math.cos(p[i]);
       var imag = a[i] * Math.sin(p[i]);
-      freq.push(new ComplexNumber({re:real, im:imag}));
+      freq.push(new ComplexNumber({ re: real, im: imag }));
     }
     var samples = inverseDiscreteFourierTransform(freq);
     // var freq2 = dft(samples);
     var min = Math.abs(Math.min(...samples))
     var samples = samples.map(x => Math.floor(x + min));
-    let res = [];
-    for (let i = 0; i < repeat; i++) {
-      res.push(...samples);
-    }
-    return res;
+    return samples;
   }
 
-  sineWave(n, a, f) {
-    var t = n / decToValue(this.header.sampleRate);
-    return Math.floor(a * (Math.sin(2 * Math.PI * f * t) + 1));
+  sineWave(s, a, f) {
+    let res = [];
+    for (let n = 0; n < s; n++) {
+      var t = n / decToValue(this.header.sampleRate);
+      res.push(Math.floor(a * (Math.sin(2 * Math.PI * f * t) + 1)));
+    }
+    return res;
   }
 
   getOutputHeader() {
@@ -371,10 +414,19 @@ function download(text, name) {
 
 function arrayMax(arr) {
   var max = -Number.MAX_VALUE;
-  arr.forEach(function(e) {
-      if (max < e) {
-          max = e;
-      }
+  arr.forEach(function (e) {
+    if (max < e) {
+      max = e;
+    }
   });
   return max;
+}
+
+function cmp(a, b) {
+  return a[0] > b[0] ? -1 : (a[0] < b[0] ? 1 : 0);
+}
+
+// Maps value p in range A-B to range C-D
+function mapVals(p, A, B, C, D) {
+  return ((p - A) * ((D - C) / (B - A))) + C;
 }
