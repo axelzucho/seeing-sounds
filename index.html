@@ -74,7 +74,7 @@
   <input id="audio" type="file" />
   <br>
   Submit image:
-  <input id="image" type="file" />
+  <input id="image" type="file" name="image" />
   <div id="result"></div>
   <a id="downloadLink" style="display: none">Download</a>
   <a id="getFile" style="display: none">Get file</a>
@@ -85,5 +85,13 @@
         ThreejsAnimation
     </div>
   </div>
+
+  <form action="/profile" method="post" enctype="multipart/form-data">
+    <input type="file" name="avatar" />
+    <button></button>
+  </form>
+
+
+
 </body>
 </html>

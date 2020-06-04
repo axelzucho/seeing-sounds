@@ -1,76 +1,76 @@
 const http = require('http');
 const fs = require('fs');
 const ppm = require('ppm-bin');
-const express = require('express');
-const cors = require('cors');
 const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 const sleep = require('sleep');
 const FileReader = require('filereader');
-var app = express();
+var multer  = require('multer')
+var bodyParser = require('body-parser');
+let binaryFile = require('binary-file')
 
+
+const express = require('express');
+var cors = require('cors');
+var multer  = require('multer')
+var upload = multer({ dest: 'uploads/' })
+
+var app = express();
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cors({credentials: true, origin: 'http://localhost:8000'}));
+app.use(bodyParser.json());
 const hostname = '127.0.0.1';
 const port = 3000;
 
-/*app.get('/products/:id', cors(), function (req, res, next) {
-    res.json({msg: 'This is CORS-enabled for a Single Route'})
+
+app.listen(port)
+console.log(`Listening at http://localhost:${port}`)
+
+app.listen()
+
+/*
+'use strict';
+app.post('/', function (req, res) {
+    res.send('POST request to the homepage')
+
+    const myBinaryFile = new binaryFile(req.body, 'r');
+    myBinaryFile.open().then(function () {
+        console.log('File opened');
+        return myBinaryFile.readUInt32();
+    }).then(function (stringLength) {
+        return myBinaryFile.readString(stringLength);
+    }).then(function (string) {
+        console.log(`File read: ${string}`);
+        return myBinaryFile.close();
+    }).then(function () {
+        console.log('File closed');
+    }).catch(function (err) {
+        console.log(`There was an error: ${err}`);
+    });
+
+})
+*/
+
+app.use(function(req, res, next) {
+    var data = new Buffer('');
+    req.on('data', function(chunk) {
+        data = Buffer.concat([data, chunk]);
+    });
+    req.on('end', function() {
+        req.rawBody = data;
+    });
+    console.log(data);
+    outputToFile("salo2.ppm",data);
+
+    let res1 = "images/saloPruebaExpress.png"
+    ppm.convert("salo2.ppm", res1, ((err) => {
+          if (err) console.log(err);
+      }));
 });
 
-app.listen(port, function () {
-    console.log('CORS-enabled web server listening on port 80')
-});*/
 
-// TODO:
-// a. Color shader: Considering intermediate structure.
-// b. Post-Processing effect.
-// c. Change the client back to not need to initialize a server.
-
-async function outputToFile(filename, blob){
-    await fs.writeFile(filename, blob, 'binary', function (err) {
-        if (err) return console.log(err);
-    });
+function outputToFile(filename, blob){
+    fs.writeFileSync(filename, blob);
+    console.log("blob: "+ blob );
     return true;
 }
 
-const server = http.createServer((req, res) => {
-    console.log(req.method);
-    if (req.method === 'POST') {
-        console.log('POST');
-        var body = '';
-        req.on('data', function(data) {
-            body += data;
-        });
-        req.on('end', function() {
-            let inputFile = "/home/axelzucho/Documents/seeing-sounds/otherinput.ppm";
-            let input2 = "/home/axelzucho/Documents/seeing-sounds/images/stop_1.ppm";
-            console.log('Body received');
-            outputToFile(inputFile, body).then(result => {
-                sleep.sleep(2);
-                var res1 = "otheroutput1235.png";
-                ppm.convert(inputFile, res1, ((err) => {
-                    if (err) console.log(err);
-
-                    res.statusCode = 200;
-                    res.setHeader('Content-Type', 'text/plain');
-                    res.setHeader("Access-Control-Allow-Origin", "*");
-                    res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-                    res.end(res1);
-                    console.log("ENDED");
-                }));
-            });
-        });
-        sleep.sleep(20);
-    }
-    else if (req.method === 'OPTIONS') {
-        console.log(req.method);
-        //res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
-        res.statusCode = 200;
-        res.end();
-    }
-});
-
-server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
-});

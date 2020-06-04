@@ -26,7 +26,8 @@ class ThreeJs {
         //this.audio.play();
         this.audio.loop = true;
         obj = this;
-        this.getResourcesFromServer();
+        //this.getResourcesFromServer();
+        this.doPostExpress();
     }
 
     loadTexture(filepath) {
@@ -160,6 +161,37 @@ class ThreeJs {
         anim.start();
     }
 
+    doPostExpress()
+    {
+        let ppm = new Ppm();
+        ppm.fromInterm(this.intermediate);
+        let outputBlob = ppm.toBlob();
+
+
+        var data = outputBlob;
+
+        var xhr = new XMLHttpRequest();
+        xhr.withCredentials = true;
+
+        xhr.addEventListener("readystatechange", function () {
+            if (this.readyState === 4) {
+                console.log(this.responseText);
+            }
+        });
+
+        xhr.open("POST", "http://localhost:3000");
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.setRequestHeader("cache-control", "no-cache");
+        xhr.setRequestHeader("Postman-Token", "c36bfe42-de1f-4ef1-be77-59070abbade3");
+
+        xhr.send(data);
+
+
+    }
+
+
+
+
     getResourcesFromServer() {
         let ppm = new Ppm();
         ppm.fromInterm(this.intermediate);
@@ -170,9 +202,10 @@ class ThreeJs {
         Http.open("POST", url, true);
 
         //Http.setRequestHeader('Content-type', 'image/x-portable-pixmap');
-        Http.setRequestHeader('Content-type', 'image/x-portable-pixmap');
+        Http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
         Http.onreadystatechange = function() {//Call a function when the state changes.
             if(Http.readyState === 4 && Http.status === 200) {
+                console.log(Http)
                 let filepath = Http.responseText;
                 obj.loadTexture(filepath);
                 obj.createScene();

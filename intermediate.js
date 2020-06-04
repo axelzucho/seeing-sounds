@@ -35,6 +35,7 @@ $(function () {
 
       var ppm = new Ppm();
       ppm.fromFile(decArray);
+
       var interm = ppm.toInterm();
       var ppm2  = new Ppm();
       ppm2.fromInterm(interm);
@@ -44,12 +45,20 @@ $(function () {
       link.href = ppm2.toFile("audio.ppm");
       link.download = "audio.ppm";
       link.style.display = 'block';
+
+
+
+
       var threejs = new ThreeJs(ppm.toInterm());
     };
     console.log(this.files[0]);
     reader.readAsArrayBuffer(this.files[0]);
 
   }, false);
+
+
+
+
 
 });
 
