@@ -34,7 +34,6 @@ const server = http.createServer((req, res) => {
             var binaryBuffer = new Buffer(body.toString('binary'), 'base64');
             console.log(body);
             let inputFile = "/home/axelzucho/Documents/seeing-sounds/otherinput.ppm";
-            let input2 = "/home/axelzucho/Documents/seeing-sounds/images/stop_1.ppm";
             console.log('Body received');
             outputToFile(inputFile, binaryBuffer);
                 var res1 = "otheroutput1235.png";
