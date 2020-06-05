@@ -15,7 +15,11 @@ class ThreeJs {
     uniforms = null;
     ambientLight = {};
     currentTime = 0;
+    allBackgroundCubes = [];
     composers = [];
+    mainObject = {};
+    raycaster = {};
+    hitIndex = 0;
 
     constructor(intermediate) {
         this.intermediate = intermediate;
@@ -58,6 +62,7 @@ class ThreeJs {
         this.root.add(this.ambientLight);
 
         this.scene.add(this.root);
+        this.raycaster = new THREE.Raycaster();
     }
 
     getNPoints(n) {
@@ -219,18 +224,19 @@ class ThreeJs {
         this.createAnimation(sphere);
 
         this.scene.add(sphere);
+        this.mainObject = sphere;
         this.currentTime = Date.now();
         console.log(sphere);
     }
 
     defaultBackgroundParams() {
         let params = {};
-        params['delta'] = 1.5;
+        params['delta'] = 1.0;
         params['startX'] = -10;
         params['endX'] = 10;
         params['startY'] = -10;
         params['endY'] = 10;
-        params['allZ'] = 30;
+        params['allZ'] = 20;
 
         return params;
     }
@@ -261,10 +267,10 @@ class ThreeJs {
         if(params === undefined) {
             params = this.defaultBackgroundParams();
         }
-        let allCubes = [];
         let delta = params['delta'];
         let z = params['allZ'];
-        let intensity = 10;
+        let i = 0;
+        let intensity = 0.08;
         for (let x = params['startX']; x < params['endX']; x += delta) {
             for (let y = params['startY']; y < params['endY']; y += delta) {
                 const cubeColor = Math.random() * 0xffffff;
@@ -277,13 +283,56 @@ class ThreeJs {
                 let geometry = new THREE.BoxGeometry( 1, 1, 1 );
                 let cube = new THREE.Mesh(geometry, material);
                 cube.position.set(x, y, z);
+                cube.name = i.toString();
+                i += 1;
                 this.scene.add(cube);
-                allCubes.push(cube);
-                intensity = 0.1;
+                this.allBackgroundCubes.push(cube);
             }
         }
         this.addComposer();
-        return allCubes;
+    }
+
+    launchRay(){
+        //let direction = new THREE.Vector3(this.mainObject.position.x, this.mainObject.position.y, 100).normalize();
+        let newPos = new THREE.Vector3();
+        newPos.x = this.mainObject.position.x;
+        newPos.y = this.mainObject.position.y;
+        newPos.z = this.camera.position.z;
+        //this.raycaster.set(this.mainObject.position, direction);
+        //this.raycaster.set(newPos, direction);
+
+        let simMouse = new THREE.Vector3();
+        simMouse.copy(this.mainObject.position);
+        this.mainObject.localToWorld(simMouse);
+        this.camera.worldToLocal(simMouse);
+        let direction = new THREE.Vector3(this.mainObject.position.x, this.mainObject.position.y, 100).normalize();
+        //this.camera.worldToLocal(direction);
+        //simMouse.x =  ((simMouse.x + 5)/10) * 2 - 1;
+        //simMouse.y =  ((simMouse.y + 5)/10) * 2 + 1;
+        //simMouse.x = simMouse.x * (-1);
+        //simMouse.z = -10;
+        //simMouse.y = simMouse.y * (-1);
+
+        //console.log(simMouse);
+        //let direction = new THREE.Vector3(simMouse.x, simMouse.y, 100).normalize();
+        //let direction = new THREE.Vector3(0, 0, 100).normalize();
+        //this.raycaster.setFromCamera(simMouse, this.camera);
+        //this.raycaster.set(simMouse, direction);
+        //console.log("POSITION: ", this.mainObject.position);
+        //console.log("DIRECTION: ", simMouse);
+        //this.raycaster.set(this.mainObject.position, direction);
+        this.raycaster.set(newPos, direction);
+
+        let intersects = this.raycaster.intersectObjects(this.scene.children, true);
+        if (intersects.length > 0) {
+            if(this.hitIndex > 0 && this.hitIndex < this.allBackgroundCubes.length) {
+                this.allBackgroundCubes[this.hitIndex].material.emissiveIntensity = 0.08;
+            }
+            this.hitIndex = parseInt(intersects[intersects.length - 1].object.name);
+            if(this.hitIndex > 0 && this.hitIndex < this.allBackgroundCubes.length) {
+                this.allBackgroundCubes[this.hitIndex].material.emissiveIntensity = 1;
+            }
+        }
     }
 
     run() {
@@ -296,6 +345,7 @@ class ThreeJs {
         this.currentTime = time;
 
         KF.update();
+        this.launchRay();
 
         // Render the scene
         //this.renderer.render(this.scene, this.camera);
