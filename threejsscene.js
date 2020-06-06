@@ -22,7 +22,11 @@ class ThreeJs {
     composers = [];
     mainObject = {};
     raycaster = {};
-    hitIndex = 0;
+    energyDisPM = 0.001;
+    energyIrrPM = 0.004;
+    energyIrrDivDist = 2;
+    minIntensity = 0.1;
+    maxIntensity = 2;
 
     constructor(wav, ppm, intermediate) {
         this.intermediate = intermediate;
@@ -115,7 +119,6 @@ class ThreeJs {
             });
         });
         return rots;
-
     }
 
     createAnimation(obj) {
@@ -271,78 +274,82 @@ class ThreeJs {
         }
         let delta = params['delta'];
         let z = params['allZ'];
-        let i = 0;
-        let intensity = 0.08;
+        let xIndex = 0;
+        let yIndex = 0;
         for (let x = params['startX']; x < params['endX']; x += delta) {
+            yIndex = 0;
+            let cubeArray = [];
             for (let y = params['startY']; y < params['endY']; y += delta) {
                 const cubeColor = Math.random() * 0xffffff;
                 let material = new THREE.MeshLambertMaterial(
                     {
                         color: cubeColor,
                         emissive: cubeColor,
-                        emissiveIntensity: intensity
+                        emissiveIntensity: this.minIntensity
                     });
                 let geometry = new THREE.BoxGeometry( 1, 1, 1 );
                 let cube = new THREE.Mesh(geometry, material);
                 cube.position.set(x, y, z);
-                cube.name = i.toString();
-                i += 1;
+                cube.name = xIndex + ":" + yIndex++;
                 this.scene.add(cube);
-                this.allBackgroundCubes.push(cube);
+                cubeArray.push(cube);
             }
+            this.allBackgroundCubes.push(cubeArray);
+            xIndex++;
         }
         this.addComposer();
     }
 
-    launchRay(){
-        //let direction = new THREE.Vector3(this.mainObject.position.x, this.mainObject.position.y, 100).normalize();
+    parseRowColumn(cubeName){
+        let result = [];
+        let sep = cubeName.indexOf(':');
+        if (sep === -1) return result;
+        // Parse x
+        result.push(parseInt(cubeName.substr(0, sep)));
+        // Parse y
+        result.push(parseInt(cubeName.substr(sep + 1, cubeName.length - (sep + 1))));
+        return result;
+    }
+
+    dissipateEnergy(ms) {
+        for(let x = 0; x < this.allBackgroundCubes.length; x++){
+            for(let y = 0; y < this.allBackgroundCubes[x].length; y++) {
+                let updated = this.allBackgroundCubes[x][y].material.emissiveIntensity - (this.energyDisPM * ms);
+                this.allBackgroundCubes[x][y].material.emissiveIntensity =
+                    Math.max(this.minIntensity, updated)
+            }
+        }
+    }
+
+    irradiateEnergy(ms, xPos, yPos) {
+        for(let x = 0; x < this.allBackgroundCubes.length; x++){
+            for(let y = 0; y < this.allBackgroundCubes[x].length; y++) {
+                let distance = Math.max(Math.abs(xPos - x), Math.abs(yPos - y));
+                let energyIncrease = this.energyIrrPM * ms;
+                if (distance > 0) {
+                    energyIncrease /= (distance * this.energyIrrDivDist);
+                }
+                let updated = this.allBackgroundCubes[x][y].material.emissiveIntensity + energyIncrease;
+                this.allBackgroundCubes[x][y].material.emissiveIntensity = Math.min(updated, this.maxIntensity);
+            }
+        }
+    }
+
+    launchRay(deltaTime){
         let newPos = new THREE.Vector3();
         newPos.x = this.mainObject.position.x;
         newPos.y = this.mainObject.position.y;
         newPos.z = this.mainObject.position.z;
-        //newPos.z = this.camera.position.z;
-        //this.raycaster.set(this.mainObject.position, direction);
-        //this.raycaster.set(newPos, direction);
-
-        let simMouse = new THREE.Vector3();
-        simMouse.copy(this.mainObject.position);
-        //console.log("Object original position: ", simMouse);
-        //this.mainObject.localToWorld(simMouse);
-        //console.log("Object position after set to world: ", simMouse);
-        //this.camera.worldToLocal(simMouse);
-        //simMouse.sub(this.camera.position);
-        //simMouse = simMouse.normalize();
         let direction = new THREE.Vector3(this.mainObject.position.x, this.mainObject.position.y, 100).normalize();
-        console.log(newPos);
-        console.log(direction);
-        //this.camera.worldToLocal(direction);
-        //simMouse.x =  ((simMouse.x + 5)/10) * 2 - 1;
-        //simMouse.y =  ((simMouse.y + 5)/10) * 2 + 1;
-        //simMouse.x = simMouse.x * (-1);
-        //simMouse.z = -10;
-        //simMouse.y = simMouse.y * (-1);
-
-        //console.log(simMouse);
-        //let direction = new THREE.Vector3(simMouse.x, simMouse.y, 100).normalize();
-        //let direction = new THREE.Vector3(0, 0, 100).normalize();
-        //this.raycaster.setFromCamera(simMouse, this.camera);
-        //this.raycaster.set(simMouse, direction);
-        //console.log("POSITION: ", this.mainObject.position);
-        //console.log("DIRECTION: ", simMouse);
-        //this.raycaster.set(this.mainObject.position, direction);
         this.raycaster.set(newPos, direction);
-        //console.log("Camera position: ", this.camera.position);
-        //this.raycaster.set(this.camera.position, simMouse.normalize());
 
         let intersects = this.raycaster.intersectObjects(this.scene.children, true);
         if (intersects.length > 0) {
-            console.log("intersected with: ", intersects[intersects.length - 1].object.name);
-            if(this.hitIndex > 0 && this.hitIndex < this.allBackgroundCubes.length) {
-                this.allBackgroundCubes[this.hitIndex].material.emissiveIntensity = 0.08;
-            }
-            this.hitIndex = parseInt(intersects[intersects.length - 1].object.name);
-            if(this.hitIndex > 0 && this.hitIndex < this.allBackgroundCubes.length) {
-                this.allBackgroundCubes[this.hitIndex].material.emissiveIntensity = 1;
+            //console.log("intersected with: ", intersects[intersects.length - 1].object.name);
+            this.dissipateEnergy(deltaTime);
+            let hitIndex = this.parseRowColumn(intersects[intersects.length - 1].object.name);
+            if(hitIndex.length > 0) {
+                this.irradiateEnergy(deltaTime, hitIndex[0], hitIndex[1]);
             }
         }
     }
@@ -353,11 +360,12 @@ class ThreeJs {
         });
 
         let time = Date.now();
-        this.uniforms.time.value += (time - this.currentTime) / 2000;
+        let delta = time - this.currentTime;
+        this.uniforms.time.value += delta / 2000;
         this.currentTime = time;
 
         KF.update();
-        this.launchRay();
+        this.launchRay(delta);
 
         // Render the scene
         //this.renderer.render(this.scene, this.camera);
