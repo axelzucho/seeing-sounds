@@ -21,28 +21,29 @@ $(function () {
       link.href = ppm.toFile("image.ppm");
       link.download = "image.ppm";
       link.style.display = 'block';
+      let threejs = new ThreeJs(wav, ppm, interm);
     };
     reader.readAsArrayBuffer(this.files[0]);
 
   }, false);
 
   document.querySelector('#image').addEventListener('change', function () {
-    var reader = new FileReader();
+    let reader = new FileReader();
     reader.onload = function () {
-      var arrayBuffer = this.result,
+      let arrayBuffer = this.result,
         decArray = new Uint8Array(arrayBuffer),
         link = document.getElementById("downloadLink");
 
-      var ppm = new Ppm();
+      let ppm = new Ppm();
       ppm.fromFile(decArray);
-      var interm = ppm.toInterm();
-      var wav= new Wav();
+      let interm = ppm.toInterm();
+      let wav= new Wav();
       wav.fromInterm(interm);
 
       link.href = wav.toFile("audio.wav");
       link.download = "audio.wav";
       link.style.display = 'block';
-      var threejs = new ThreeJs(ppm.toInterm());
+      let threejs = new ThreeJs(wav, ppm, interm);
     };
     console.log(this.files[0]);
     reader.readAsArrayBuffer(this.files[0]);

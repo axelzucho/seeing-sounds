@@ -4,16 +4,19 @@ let obj = {};
 
 class ThreeJs {
     intermediate = {};
+    ppm = {};
+    wav = {};
+
     canvas = {};
     renderer = {};
     camera = {};
     scene = {};
     root = {};
     objs = [];
-    audio = {};
     texture = null;
     uniforms = null;
     ambientLight = {};
+    audio = {};
     currentTime = 0;
     allBackgroundCubes = [];
     composers = [];
@@ -21,12 +24,13 @@ class ThreeJs {
     raycaster = {};
     hitIndex = 0;
 
-    constructor(intermediate) {
+    constructor(wav, ppm, intermediate) {
         this.intermediate = intermediate;
         this.canvas = document.getElementById("webglcanvas");
-        let wav = new Wav();
-        wav.fromInterm(intermediate);
-        let audioBlob = wav.toFile("audio.wav");
+        this.wav = wav;
+        this.ppm = ppm;
+
+        let audioBlob = this.wav.toFile("audio.wav");
         this.audio = new Audio(audioBlob);
         this.audio.play();
         this.audio.loop = true;
@@ -167,9 +171,7 @@ class ThreeJs {
     }
 
     getResourcesFromServer() {
-        let ppm = new Ppm();
-        ppm.fromInterm(this.intermediate);
-        let outputBlob = ppm.toBlob();
+        let outputBlob = this.ppm.toBlob();
 
         const Http = new XMLHttpRequest();
         const url = 'http://127.0.0.1:3000/';
@@ -297,15 +299,22 @@ class ThreeJs {
         let newPos = new THREE.Vector3();
         newPos.x = this.mainObject.position.x;
         newPos.y = this.mainObject.position.y;
-        newPos.z = this.camera.position.z;
+        newPos.z = this.mainObject.position.z;
+        //newPos.z = this.camera.position.z;
         //this.raycaster.set(this.mainObject.position, direction);
         //this.raycaster.set(newPos, direction);
 
         let simMouse = new THREE.Vector3();
         simMouse.copy(this.mainObject.position);
-        this.mainObject.localToWorld(simMouse);
-        this.camera.worldToLocal(simMouse);
+        //console.log("Object original position: ", simMouse);
+        //this.mainObject.localToWorld(simMouse);
+        //console.log("Object position after set to world: ", simMouse);
+        //this.camera.worldToLocal(simMouse);
+        //simMouse.sub(this.camera.position);
+        //simMouse = simMouse.normalize();
         let direction = new THREE.Vector3(this.mainObject.position.x, this.mainObject.position.y, 100).normalize();
+        console.log(newPos);
+        console.log(direction);
         //this.camera.worldToLocal(direction);
         //simMouse.x =  ((simMouse.x + 5)/10) * 2 - 1;
         //simMouse.y =  ((simMouse.y + 5)/10) * 2 + 1;
@@ -322,9 +331,12 @@ class ThreeJs {
         //console.log("DIRECTION: ", simMouse);
         //this.raycaster.set(this.mainObject.position, direction);
         this.raycaster.set(newPos, direction);
+        //console.log("Camera position: ", this.camera.position);
+        //this.raycaster.set(this.camera.position, simMouse.normalize());
 
         let intersects = this.raycaster.intersectObjects(this.scene.children, true);
         if (intersects.length > 0) {
+            console.log("intersected with: ", intersects[intersects.length - 1].object.name);
             if(this.hitIndex > 0 && this.hitIndex < this.allBackgroundCubes.length) {
                 this.allBackgroundCubes[this.hitIndex].material.emissiveIntensity = 0.08;
             }
