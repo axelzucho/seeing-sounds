@@ -24,9 +24,9 @@ class ThreeJs {
     raycaster = {};
     energyDisPM = 0.001;
     energyIrrPM = 0.004;
-    energyIrrDivDist = 2;
+    energyIrrDivDist = 1.5;
     minIntensity = 0.1;
-    maxIntensity = 2;
+    maxIntensity = 1.5;
 
     constructor(wav, ppm, intermediate) {
         this.intermediate = intermediate;
