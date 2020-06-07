@@ -1,21 +1,9 @@
 const http = require('http');
 const fs = require('fs');
 const ppm = require('ppm-bin');
-const express = require('express');
-const cors = require('cors');
-const XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-const sleep = require('sleep');
-const FileReader = require('filereader');
-var app = express();
-var atob = require('atob');
 
 const hostname = '127.0.0.1';
 const port = 3000;
-
-// TODO:
-// a. Color shader: Considering intermediate structure.
-// b. Post-Processing effect.
-// c. Change the client back to not need to initialize a server.
 
 function outputToFile(filename, blob){
     fs.writeFileSync(filename, blob, "binary");
@@ -33,18 +21,18 @@ const server = http.createServer((req, res) => {
         req.on('end', function() {
             var binaryBuffer = new Buffer(body.toString('binary'), 'base64');
             console.log(body);
-            let inputFile = "otherinput.ppm";
+            let inputFile = "images/inputForConversion.ppm";
             console.log('Body received');
             outputToFile(inputFile, binaryBuffer);
-                var res1 = "otheroutput1235.png";
-                ppm.convert(inputFile, res1, ((err) => {
+                var outputLink = "images/conversionOutput.png";
+                ppm.convert(inputFile, outputLink, ((err) => {
                     if (err) console.log(err);
 
                     res.statusCode = 200;
                     res.setHeader('Content-Type', 'text/plain');
                     res.setHeader("Access-Control-Allow-Origin", "*");
                     res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-                    res.end(res1);
+                    res.end(outputLink);
                     console.log("ENDED");
                 }));
         });
