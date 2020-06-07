@@ -26,7 +26,7 @@ class ThreeJs {
     energyIrrPM = 0.004;
     energyIrrDivDist = 1.5;
     minIntensity = 0.1;
-    maxIntensity = 1.5;
+    maxIntensity = 1.0;
 
     constructor(wav, ppm, intermediate) {
         this.intermediate = intermediate;
@@ -217,7 +217,6 @@ class ThreeJs {
             uniforms: this.uniforms,
             fragmentShader: document.getElementById('fragmentShader').textContent,
             vertexShader: document.getElementById('vertexShader').textContent,
-            transparent: true,
         });
 
         // And put the geometry and material together into a mesh
@@ -269,6 +268,11 @@ class ThreeJs {
     }
 
     addBackgroundCubes(params) {
+        let maxSide = Math.min(20, this.ppm.header.width, this.ppm.header.height);
+        let ratio = Math.max(this.ppm.header.width, this.ppm.header.height) / maxSide;
+        let newWidth = Math.floor(this.ppm.header.width / ratio);
+        let newHeight = Math.floor(this.ppm.header.height / ratio);
+        let chunks = this.ppm.chunkify(newWidth, newHeight);
         if(params === undefined) {
             params = this.defaultBackgroundParams();
         }
@@ -279,8 +283,11 @@ class ThreeJs {
         for (let x = params['startX']; x < params['endX']; x += delta) {
             yIndex = 0;
             let cubeArray = [];
+            let realX = - x - params['startX'];
             for (let y = params['startY']; y < params['endY']; y += delta) {
-                const cubeColor = Math.random() * 0xffffff;
+                let realY = - y - params['startY'];
+                const rgb = chunks.getPixel(realX, realY);
+                const cubeColor = new THREE.Color("rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")");
                 let material = new THREE.MeshLambertMaterial(
                     {
                         color: cubeColor,

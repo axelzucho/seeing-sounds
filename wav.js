@@ -177,9 +177,15 @@ class Wav {
   audioFromSamples() {
     var samples = [];
     var chunkSize = 500;
-
+    let progress = {
+      currChunk: 0,
+      chunkCount: Math.ceil(this.audioData.length / chunkSize)
+    }
+    console.group("Conversion progress");  
     var max = arrayMax(this.audioData);
     for (var i = 0; i < this.audioData.length; i += chunkSize) {
+      console.log(progress);
+      progress.currChunk++;
       var slice = this.audioData.slice(i, i + chunkSize);
       var avg = 0;
       var currMin = max;
@@ -211,6 +217,7 @@ class Wav {
         samples.push(leftArr[0], leftArr[1], rightArr[0], rightArr[1]);
       }
     }
+    console.groupEnd();
     samples = Uint8Array.from(samples);
     return samples;
   }

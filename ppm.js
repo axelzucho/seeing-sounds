@@ -25,12 +25,10 @@ class Ppm {
 
     fromInterm(interm) {
         this.header.format = "P6";
-        this.header.width = 100;
-        this.header.height = 100;
+        this.header.width = -1;
+        this.header.height = -1;
         this.header.max_val = 255;
-        //this.data = this.toLines(interm.data);
         this.data = interm.data;
-        this.checkHeader();
     }
 
     checkHeader() {
@@ -124,55 +122,72 @@ class Ppm {
         return newPixelData;
     }
 
-    getChunkIndex(i, width, chunkWidth) {
+    getChunkIndex(i, width, height, chunkWidth, chunkHeight) {
         let col = Math.floor((i % width) / chunkWidth);
         let maxChunk = Math.floor(width / chunkWidth);
         if (col >= maxChunk) {
             return -1;
         }
-        let row = Math.floor(i / (chunkWidth * width));
+        let row = Math.floor(i / (chunkHeight * height));
         if (row >= maxChunk) {
             return -1;
         }
-        row = row * Math.floor(width / chunkWidth);
+        row = row * Math.floor(width / chunkHeight);
         return col + row;
     }
 
-    chunkify(data, chunkWidth) {
-        const width = Math.sqrt(data.length);
-        const chunkSize = chunkWidth * chunkWidth;
-        const newLength = Math.floor(data.length / chunkSize);
+    getPixel(x, y) {
+        let index = x * 3 + (y * this.header.width * 3);
+        return [this.decArray[index], this.decArray[index+1], this.decArray[index+2]];
+    }
+
+    chunkify(newWidth, newHeight) {
+        const chunkWidth = Math.floor(this.header.width / newWidth);
+        const chunkHeight = Math.floor(this.header.height / newHeight);
+        // const width = Math.sqrt(this.data.length);
+        const chunkSize = chunkWidth * chunkHeight;
+        const newLength = Math.floor(this.data.length / chunkSize);
         let newData = Array(newLength).fill().map(() => Array(3).fill(0));
-        for (let i = 0; i < data.length; i++) {
-            let index = this.getChunkIndex(i, width, chunkWidth);
+        for (let i = 0; i < this.data.length; i++) {
+            let index = this.getChunkIndex(i, this.header.width, this.header.height, chunkWidth, chunkHeight);
             if (index == -1) { continue; } // Overflow
-            let rgb = this.getRGBFromInt(data[i]);
+            let rgb = this.getRGBFromInt(this.data[i]);
             rgb = Uint8Array.from(rgb);
             newData[index][0] += rgb[0] / chunkSize; // R
             newData[index][1] += rgb[1] / chunkSize; // G
             newData[index][2] += rgb[2] / chunkSize; // B
         }
         let res = newData.map(pix => this.getIntFromRGB(pix[0], pix[1], pix[2]));
-        return res;
+
+        // Create new ppm object from result
+        let newppm = new Ppm();
+        newppm.data = res;
+        newppm.decArray = newppm.separateRGB();
+        newppm.header.format = "P6";
+        newppm.header.width = Math.floor(this.header.width / chunkWidth);
+        newppm.header.height = Math.floor(this.header.height / chunkWidth);
+        newppm.header.max_val = 255;
+
+        return newppm;
     }
 
-    dechunkify(data, chunkWidth) {
-        const chunkSize = chunkWidth * chunkWidth;
-        const newLength = data.length * chunkSize;
-        const width = Math.floor(Math.sqrt(newLength));
-        let newData = Array(newLength).fill().map(() => Array(3).fill(0));
-        for (let i = 0; i < newData.length; i++) {
-            let index = this.getChunkIndex(i, width, chunkWidth);
-            if (index == -1) { continue; } // Overflow
-            let rgb = this.getRGBFromInt(data[index]);
-            rgb = Uint8Array.from(rgb);
-            newData[i][0] = rgb[0]; // R
-            newData[i][1] = rgb[1]; // G
-            newData[i][2] = rgb[2]; // B
-        }
-        let res = newData.map(pix => this.getIntFromRGB(pix[0], pix[1], pix[2]));
-        return res;
-    }
+    // dechunkify(data, chunkWidth) {
+    //     const chunkSize = chunkWidth * chunkWidth;
+    //     const newLength = data.length * chunkSize;
+    //     const width = Math.floor(Math.sqrt(newLength));
+    //     let newData = Array(newLength).fill().map(() => Array(3).fill(0));
+    //     for (let i = 0; i < newData.length; i++) {
+    //         let index = this.getChunkIndex(i, width, chunkWidth);
+    //         if (index == -1) { continue; } // Overflow
+    //         let rgb = this.getRGBFromInt(data[index]);
+    //         rgb = Uint8Array.from(rgb);
+    //         newData[i][0] = rgb[0]; // R
+    //         newData[i][1] = rgb[1]; // G
+    //         newData[i][2] = rgb[2]; // B
+    //     }
+    //     let res = newData.map(pix => this.getIntFromRGB(pix[0], pix[1], pix[2]));
+    //     return res;
+    // }
 
     toLines(data) {
         let newData = [];
@@ -195,8 +210,12 @@ class Ppm {
     toBlob() {
         var arrayData = this.separateRGB();
         var desiredRatio = arrayData.length;
-        this.header.width = Math.floor(Math.sqrt(desiredRatio / 3));
-        this.header.height = Math.floor(Math.sqrt(desiredRatio / 3));
+        if (this.header.width == -1) {
+            this.header.width = Math.floor(Math.sqrt(desiredRatio / 3));
+        }
+        if (this.header.height == -1) {
+            this.header.height = Math.floor(Math.sqrt(desiredRatio / 3));
+        }
         var outputHeader = StringToArrayBuffer(this.getOutputHeader());
         if(arrayData.length !== desiredRatio) {
             arrayData = this.adjustRatio(arrayData, desiredRatio);
