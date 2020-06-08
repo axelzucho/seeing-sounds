@@ -176,15 +176,13 @@ class Wav {
 
   audioFromSamples() {
     var samples = [];
-    var chunkSize = 500;
+    var chunkSize = 1000;
     let progress = {
       currChunk: 0,
       chunkCount: Math.ceil(this.audioData.length / chunkSize)
     }
-    console.group("Conversion progress");  
     var max = arrayMax(this.audioData);
     for (var i = 0; i < this.audioData.length; i += chunkSize) {
-      console.log(progress);
       progress.currChunk++;
       var slice = this.audioData.slice(i, i + chunkSize);
       var avg = 0;
@@ -217,7 +215,6 @@ class Wav {
         samples.push(leftArr[0], leftArr[1], rightArr[0], rightArr[1]);
       }
     }
-    console.groupEnd();
     samples = Uint8Array.from(samples);
     return samples;
   }
@@ -236,15 +233,19 @@ class Wav {
 
     for (let i = 0; i < left.length; i+=chunkSize) {
       let slice = left.slice(i, i+chunkSize);
-      let maxFreqs = this.getMaxFreq(slice, 1);
-      let maxFreq = maxFreqs.map(v => v.amp * v.freq);
-      indices.push(...maxFreq);
+      let maxFreqs = this.getMaxFreq(slice, 2);
+      let maxFreq = maxFreqs.map(v => v.freq);
+      indices.push(maxFreq);
+      // let diff = Math.abs(maxFreq[0] - maxFreq[1]) / 10;
     }
+
+    // Make gradient chunks with 100 pixel width
+    indices = this.gradientify(indices, 100);
 
     const minColor = 0;
     const maxColor = 16777215; // Max RGB value: 0xFFFFFF
     const minFreq = Math.log(5000);
-    const maxFreq = Math.log(22000); // Max frequency on this scale
+    const maxFreq = Math.log(11000); // Max frequency on this scale
     
     // Apply log to frequencies
     let logVals = indices.map(v => Math.log(v));
@@ -254,13 +255,63 @@ class Wav {
     this.audioData = rgbVals;
   }
 
+  getChunkIndex(i, width, chunkWidth) {
+    let col = Math.floor((i % width) / chunkWidth);
+    let maxChunk = Math.floor(width / chunkWidth);
+    if (col >= maxChunk) {
+        return -1;
+    }
+    let row = Math.floor(i / (chunkWidth * width));
+    if (row >= maxChunk) {
+        return -1;
+    }
+    row = row * Math.floor(width / chunkWidth);
+    return col + row;
+}
+
+  gradientify(indices, chunkWidth) {
+    if (indices.length == 0 || indices[0].length < 2) {
+      throw new Error("At least two tones are needed to create a gradient");
+    }
+    const chunkSize = chunkWidth * chunkWidth;
+    const newLength = indices.length * chunkSize;
+    const width = Math.floor(Math.sqrt(newLength));
+    let newIndices = [];
+    let gradient = [];
+    // Find color diffs
+    for (let i = 0; i < indices.length; i++) {
+      let curr = indices[i];
+      let start = curr[0]
+      let end = curr[1];
+      let diff = (end - start) / (chunkSize * 100);
+      let grad = {
+        curr: start,
+        diff: diff
+      }
+      gradient.push(grad);
+    }
+    // Create gradient squares
+    for (let i = 0; i < newLength; i++) {
+      let index = this.getChunkIndex(i, width, chunkWidth);
+      if (index == -1) {
+        continue;
+      }
+      newIndices.push(gradient[index].curr);
+      gradient[index].curr += gradient[index].diff;
+    }
+    return newIndices;
+  }
+
   getMaxFreq(slice, n) {
     const mult = 100;
-    let complexSlice = slice.map(x => new ComplexNumber({re:x}));
-    let freqs = fastFourierTransform(complexSlice);
-    freqs = freqs.slice(1, Math.floor(freqs.length/2));
-    let absFreqs = freqs.map(val => val.getRadius());
-    let dataIndex = absFreqs.map((v, i) => [v, i]);
+    const data = new ComplexArray(slice.length).map((value, i) => {
+      value.real = slice[i];
+    });
+    data.FFT();
+    let freqs = Array.from(data.magnitude());
+    freqs = freqs.slice(1, freqs.length / 2);
+    download(freqs, "freqs.txt");
+    let dataIndex = freqs.map((v, i) => [v, i]);
     dataIndex.sort(cmp);
     dataIndex = dataIndex.slice(0, n);
     // Frequencies are log scaled
@@ -277,16 +328,16 @@ class Wav {
     if (a.length != p.length) {
       throw new Error('Bucket sizes should be equal');
     }
-    var freq = [];
-    for (var i = 0; i < a.length; i++) {
-      var real = a[i] * Math.cos(p[i]);
-      var imag = a[i] * Math.sin(p[i]);
-      freq.push(new ComplexNumber({ re: real, im: imag }));
-    }
-    var samples = inverseDiscreteFourierTransform(freq);
-    // var freq2 = dft(samples);
-    var min = Math.abs(Math.min(...samples))
-    var samples = samples.map(x => Math.floor(x + min));
+    
+    const data = new ComplexArray(a.length).map((value, i) => {
+      value.real = a[i] * Math.cos(p[i]);
+      value.imag = a[i] * Math.sin(p[i]);
+    });
+    data.InvFFT();
+    let samples = Array.from(data.real);
+    let min = Math.abs(Math.min(...samples));
+    samples = samples.map(x => Math.floor(x + min) * 22);
+
     return samples;
   }
 
@@ -322,6 +373,7 @@ class Wav {
     var arrayData = [];
     if (this.data.length == 0) {
       arrayData = this.audioFromSamples();
+      this.data = arrayData;
     } else {
       arrayData = this.data;
     }

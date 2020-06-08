@@ -152,6 +152,9 @@ class Ppm {
             let index = this.getChunkIndex(i, this.header.width, this.header.height, chunkWidth, chunkHeight);
             if (index == -1) { continue; } // Overflow
             let rgb = this.getRGBFromInt(this.data[i]);
+            if (index >= newData.length) {
+                continue;
+            }
             rgb = Uint8Array.from(rgb);
             newData[index][0] += rgb[0] / chunkSize; // R
             newData[index][1] += rgb[1] / chunkSize; // G
@@ -170,24 +173,6 @@ class Ppm {
 
         return newppm;
     }
-
-    // dechunkify(data, chunkWidth) {
-    //     const chunkSize = chunkWidth * chunkWidth;
-    //     const newLength = data.length * chunkSize;
-    //     const width = Math.floor(Math.sqrt(newLength));
-    //     let newData = Array(newLength).fill().map(() => Array(3).fill(0));
-    //     for (let i = 0; i < newData.length; i++) {
-    //         let index = this.getChunkIndex(i, width, chunkWidth);
-    //         if (index == -1) { continue; } // Overflow
-    //         let rgb = this.getRGBFromInt(data[index]);
-    //         rgb = Uint8Array.from(rgb);
-    //         newData[i][0] = rgb[0]; // R
-    //         newData[i][1] = rgb[1]; // G
-    //         newData[i][2] = rgb[2]; // B
-    //     }
-    //     let res = newData.map(pix => this.getIntFromRGB(pix[0], pix[1], pix[2]));
-    //     return res;
-    // }
 
     toLines(data) {
         let newData = [];

@@ -37,7 +37,7 @@ $(function () {
       let ppm = new Ppm();
       ppm.fromFile(decArray);
       let interm = ppm.toInterm();
-      let wav= new Wav();
+      let wav = new Wav();
       wav.fromInterm(interm);
 
       link.href = wav.toFile("audio.wav");
