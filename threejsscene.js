@@ -6,6 +6,7 @@ class ThreeJs {
     intermediate = {};
     ppm = {};
     wav = {};
+    deleted = false;
 
     canvas = {};
     renderer = {};
@@ -36,13 +37,18 @@ class ThreeJs {
 
         let audioBlob = this.wav.toFile("audio.wav");
         this.audio = new Audio(audioBlob);
-        //this.audio.play();
+        this.audio.play();
         this.audio.loop = true;
         obj = this;
         this.getResourcesFromServer();
 
     }
 
+    stop() {
+        this.audio.loop = false;
+        this.audio.pause();
+        this.deleted = true;
+    }
 
 
     loadTexture(filepath) {
@@ -368,13 +374,23 @@ class ThreeJs {
     }
 
     run() {
+        if(this.deleted) {
+            return;
+        }
+
         requestAnimationFrame(function () {
             obj.run();
         });
 
         let time = Date.now();
         let delta = time - this.currentTime;
-        this.uniforms.time.value += delta / 2000;
+        // When we delete the object, some animations might have already been requested, so catching the error.
+        try {
+            this.uniforms.time.value += delta / 2000;
+        } catch (e) {
+            console.log("Trying to add value to deleted object, returning. Error catched:", e);
+            return;
+        }
         this.currentTime = time;
 
         KF.update();

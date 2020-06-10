@@ -1,3 +1,5 @@
+let threejsScene = null;
+
 class Intermediate {
   data = [];
   rate = -1;
@@ -23,7 +25,12 @@ $(function () {
       link.download = "image.ppm";
       downloadBtn.style.display = 'block';
       link.style.display = 'block';
-      let threejs = new ThreeJs(wav, ppm, interm);
+
+      if(threejsScene !== null){
+        threejsScene.stop();
+      }
+
+      threejsScene = new ThreeJs(wav, ppm, interm);
     };
     reader.readAsArrayBuffer(this.files[0]);
 
@@ -47,7 +54,12 @@ $(function () {
       link.download = "audio.wav";
       link.style.display = 'block';
       downloadBtn.style.display = 'block';
-      let threejs = new ThreeJs(wav, ppm, interm);
+
+      if(threejsScene !== null){
+        threejsScene.stop();
+      }
+
+      threejsScene = new ThreeJs(wav, ppm, interm);
     };
     console.log(this.files[0]);
     reader.readAsArrayBuffer(this.files[0]);
