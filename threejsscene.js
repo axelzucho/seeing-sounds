@@ -36,11 +36,14 @@ class ThreeJs {
 
         let audioBlob = this.wav.toFile("audio.wav");
         this.audio = new Audio(audioBlob);
-        this.audio.play();
+        //this.audio.play();
         this.audio.loop = true;
         obj = this;
         this.getResourcesFromServer();
+
     }
+
+
 
     loadTexture(filepath) {
         this.texture = new THREE.TextureLoader().load(filepath);
@@ -50,7 +53,8 @@ class ThreeJs {
         this.renderer = new THREE.WebGLRenderer({canvas: this.canvas, antialias: true});
 
         // Set the viewport siz
-        this.renderer.setSize(this.canvas.width, this.canvas.height);
+        this.renderer.setPixelRatio( window.devicePixelRatio );
+        this.renderer.setSize(window.innerWidth,window.innerHeight);
 
         // Create a new Three.js scene
         this.scene = new THREE.Scene();
@@ -71,6 +75,8 @@ class ThreeJs {
 
         this.scene.add(this.root);
         this.raycaster = new THREE.Raycaster();
+
+
     }
 
     getNPoints(n) {

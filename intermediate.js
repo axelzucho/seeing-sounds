@@ -9,7 +9,8 @@ $(function () {
     reader.onload = function () {
       var arrayBuffer = this.result,
         decArray = new Uint8Array(arrayBuffer),
-        link = document.getElementById("downloadLink");
+        link = document.getElementById("downloadLink"),
+        downloadBtn = document.getElementById("download-btn");
 
       var wav = new Wav;
       wav.fromFile(decArray);
@@ -20,6 +21,7 @@ $(function () {
 
       link.href = ppm.toFile("image.ppm");
       link.download = "image.ppm";
+      downloadBtn.style.display = 'block';
       link.style.display = 'block';
       let threejs = new ThreeJs(wav, ppm, interm);
     };
@@ -32,7 +34,8 @@ $(function () {
     reader.onload = function () {
       let arrayBuffer = this.result,
         decArray = new Uint8Array(arrayBuffer),
-        link = document.getElementById("downloadLink");
+        link = document.getElementById("downloadLink"),
+          downloadBtn = document.getElementById("download-btn");
 
       let ppm = new Ppm();
       ppm.fromFile(decArray);
@@ -43,6 +46,7 @@ $(function () {
       link.href = wav.toFile("audio.wav");
       link.download = "audio.wav";
       link.style.display = 'block';
+      downloadBtn.style.display = 'block';
       let threejs = new ThreeJs(wav, ppm, interm);
     };
     console.log(this.files[0]);
