@@ -4,7 +4,7 @@ class Intermediate {
 }
 
 $(function () {
-  document.querySelector('#audio').addEventListener('change', function () {
+  document.getElementById('audio').addEventListener('change', function () {
     var reader = new FileReader();
     reader.onload = function () {
       var arrayBuffer = this.result,
