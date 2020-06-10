@@ -58,9 +58,9 @@ class ThreeJs {
     createScene() {
         this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
 
-        // Set the viewport siz
+        // Set the viewport size
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setSize(window.innerWidth, window.innerHeight - 130);
 
         // Create a new Three.js scene
         this.scene = new THREE.Scene();
@@ -281,8 +281,9 @@ class ThreeJs {
     }
 
     addBackgroundCubes() {
-        console.log(window.innerHeight, window.innerWidth);
-        let side = 20;
+        let rendSize = this.renderer.getSize();
+        let minSide = Math.min(rendSize.x, rendSize.y);
+        let side = Math.floor(minSide / 28.0); // Magic number that controls the ratio.
         let maxSide = Math.min(side, this.ppm.header.width, this.ppm.header.height);
         let ratio = Math.max(this.ppm.header.width, this.ppm.header.height) / maxSide;
         let newWidth = Math.floor(this.ppm.header.width / ratio);
