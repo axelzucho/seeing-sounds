@@ -37,7 +37,7 @@ class ThreeJs {
 
         let audioBlob = this.wav.toFile("audio.wav");
         this.audio = new Audio(audioBlob);
-        this.audio.play();
+        // this.audio.play();
         this.audio.loop = true;
         obj = this;
         this.getResourcesFromServer();
@@ -56,11 +56,11 @@ class ThreeJs {
     }
 
     createScene() {
-        this.renderer = new THREE.WebGLRenderer({canvas: this.canvas, antialias: true});
+        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
 
         // Set the viewport siz
-        this.renderer.setPixelRatio( window.devicePixelRatio );
-        this.renderer.setSize(window.innerWidth,window.innerHeight);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
 
         // Create a new Three.js scene
         this.scene = new THREE.Scene();
@@ -216,11 +216,11 @@ class ThreeJs {
         let noiseMap = new THREE.TextureLoader().load("resources/noisy-texture.png");
 
         this.uniforms =
-            {
-                time: {type: "f", value: 0.2},
-                noiseTexture: {type: "t", value: noiseMap},
-                imageTexture: {type: "t", value: this.texture}
-            };
+        {
+            time: { type: "f", value: 0.2 },
+            noiseTexture: { type: "t", value: noiseMap },
+            imageTexture: { type: "t", value: this.texture }
+        };
 
         this.uniforms.noiseTexture.value.wrapS = this.uniforms.noiseTexture.value.wrapT = THREE.RepeatWrapping;
         this.uniforms.imageTexture.value.wrapS = this.uniforms.imageTexture.value.wrapT = THREE.RepeatWrapping;
@@ -245,19 +245,20 @@ class ThreeJs {
         console.log(sphere);
     }
 
-    defaultBackgroundParams() {
+    defaultBackgroundParams(side) {
         let params = {};
+        const size = Math.ceil(side / 2);
         params['delta'] = 1.0;
-        params['startX'] = -10;
-        params['endX'] = 10;
-        params['startY'] = -10;
-        params['endY'] = 10;
+        params['startX'] = -size;
+        params['endX'] = size;
+        params['startY'] = -size;
+        params['endY'] = size;
         params['allZ'] = 20;
 
         return params;
     }
 
-    addComposer(){
+    addComposer() {
         // First, we need to create an effect composer: instead of rendering to the WebGLRenderer, we render using the composer.
         let composer = new THREE.EffectComposer(this.renderer);
 
@@ -265,12 +266,12 @@ class ThreeJs {
         const renderPass = new THREE.RenderPass(this.scene, this.camera);
 
         // There are several passes available. Here we are using the UnrealBloomPass.
-        let bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 0.5, 0.2, 1 );
+        let bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.5, 0.2, 1);
         bloomPass.threshold = 0;
         bloomPass.strength = 1;
         bloomPass.radius = 1;
 
-        this.renderer.toneMappingExposure = Math.pow( 1, 1.0 );
+        this.renderer.toneMappingExposure = Math.pow(1, 1.0);
 
         // After the passes are configured, we add them in the order we want them.
         composer.addPass(renderPass);
@@ -279,15 +280,15 @@ class ThreeJs {
         this.composers.push(composer);
     }
 
-    addBackgroundCubes(params) {
-        let maxSide = Math.min(20, this.ppm.header.width, this.ppm.header.height);
+    addBackgroundCubes() {
+        console.log(window.innerHeight, window.innerWidth);
+        let side = 20;
+        let maxSide = Math.min(side, this.ppm.header.width, this.ppm.header.height);
         let ratio = Math.max(this.ppm.header.width, this.ppm.header.height) / maxSide;
         let newWidth = Math.floor(this.ppm.header.width / ratio);
         let newHeight = Math.floor(this.ppm.header.height / ratio);
         let chunks = this.ppm.chunkify(newWidth, newHeight);
-        if(params === undefined) {
-            params = this.defaultBackgroundParams();
-        }
+        let params = this.defaultBackgroundParams(side);
         let delta = params['delta'];
         let z = params['allZ'];
         let xIndex = 0;
@@ -306,7 +307,7 @@ class ThreeJs {
                         emissive: cubeColor,
                         emissiveIntensity: this.minIntensity
                     });
-                let geometry = new THREE.BoxGeometry( 1, 1, 1 );
+                let geometry = new THREE.BoxGeometry(1, 1, 1);
                 let cube = new THREE.Mesh(geometry, material);
                 cube.position.set(x, y, z);
                 cube.name = xIndex + ":" + yIndex++;
@@ -319,7 +320,7 @@ class ThreeJs {
         this.addComposer();
     }
 
-    parseRowColumn(cubeName){
+    parseRowColumn(cubeName) {
         let result = [];
         let sep = cubeName.indexOf(':');
         if (sep === -1) return result;
@@ -331,8 +332,8 @@ class ThreeJs {
     }
 
     dissipateEnergy(ms) {
-        for(let x = 0; x < this.allBackgroundCubes.length; x++){
-            for(let y = 0; y < this.allBackgroundCubes[x].length; y++) {
+        for (let x = 0; x < this.allBackgroundCubes.length; x++) {
+            for (let y = 0; y < this.allBackgroundCubes[x].length; y++) {
                 let updated = this.allBackgroundCubes[x][y].material.emissiveIntensity - (this.energyDisPM * ms);
                 this.allBackgroundCubes[x][y].material.emissiveIntensity =
                     Math.max(this.minIntensity, updated)
@@ -341,8 +342,8 @@ class ThreeJs {
     }
 
     irradiateEnergy(ms, xPos, yPos) {
-        for(let x = 0; x < this.allBackgroundCubes.length; x++){
-            for(let y = 0; y < this.allBackgroundCubes[x].length; y++) {
+        for (let x = 0; x < this.allBackgroundCubes.length; x++) {
+            for (let y = 0; y < this.allBackgroundCubes[x].length; y++) {
                 let distance = Math.max(Math.abs(xPos - x), Math.abs(yPos - y));
                 let energyIncrease = this.energyIrrPM * ms;
                 if (distance > 0) {
@@ -354,7 +355,7 @@ class ThreeJs {
         }
     }
 
-    launchRay(deltaTime){
+    launchRay(deltaTime) {
         let newPos = new THREE.Vector3();
         newPos.x = this.mainObject.position.x;
         newPos.y = this.mainObject.position.y;
@@ -367,14 +368,14 @@ class ThreeJs {
             //console.log("intersected with: ", intersects[intersects.length - 1].object.name);
             this.dissipateEnergy(deltaTime);
             let hitIndex = this.parseRowColumn(intersects[intersects.length - 1].object.name);
-            if(hitIndex.length > 0) {
+            if (hitIndex.length > 0) {
                 this.irradiateEnergy(deltaTime, hitIndex[0], hitIndex[1]);
             }
         }
     }
 
     run() {
-        if(this.deleted) {
+        if (this.deleted) {
             return;
         }
 
