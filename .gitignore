@@ -3,3 +3,5 @@
 *.iml
 *.DS_STORE
 node_modules/
+images/conversionOutput.png
+images/inputForConversion.ppm
