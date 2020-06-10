@@ -1,5 +1,3 @@
-let SHADOW_MAP_WIDTH = 4096, SHADOW_MAP_HEIGHT = 4096;
-
 let obj = {};
 
 class ThreeJs {
