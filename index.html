@@ -13,6 +13,8 @@
   <script src="ppm.js"></script>
   <script src="threejsscene.js"></script>
   <script src="intermediate.js"></script>
+  <script src="styles/styles.css"></script>
+  <link rel="stylesheet" type="text/css" href="styles/styles.css">
   
   <!-- Audio synthesis dependencies  -->
   <script src="lib/fft.js"></script>
@@ -79,124 +81,7 @@
 
 </script>
 
-  <style>
 
-    .title{
-      text-align: center;
-    }
-    #header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 80px;
-      /*background-color: #abcdef;*/
-    }
-    #footer {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 50px;
-      text-align: center;
-      background-color: black;
-      color: white;
-      /*background-color: #abcdef;*/
-    }
-    #content {
-      position: fixed;
-      top: 80px;
-      bottom: 50px;
-      left: 0;
-      right: 0;
-      /*background-color: #F63;*/
-      overflow: hidden;
-    }
-
-    .custom-file-input::-webkit-file-upload-button {
-      visibility: hidden;
-    }
-    .custom-file-input::before {
-      content: 'Select some files';
-      display: inline-block;
-      background: linear-gradient(top, #f9f9f9, #e3e3e3);
-      border: 1px solid #999;
-      border-radius: 3px;
-      padding: 5px 8px;
-      outline: none;
-      white-space: nowrap;
-      -webkit-user-select: none;
-      cursor: pointer;
-      text-shadow: 1px 1px #fff;
-      font-weight: 700;
-      font-size: 10pt;
-      background-color: black;
-    }
-    .custom-file-input:hover::before {
-      border-color: black;
-    }
-    .custom-file-input:active::before {
-      background: -webkit-linear-gradient(top, #e3e3e3, #f9f9f9);
-    }
-    .audio-btn{
-      position: absolute;
-      right: 7%;
-      top: 36%;
-    }
-    .image-btn{
-      position: absolute;
-      left: 3%;
-      top: 36%;
-    }
-    .download-btn{
-      position: absolute;
-      left: 30%;
-      top: 36%;
-    }
-    .audio-text{
-      position: absolute;
-      left: 6%;
-      top: 10%;
-    }
-    .img-text{
-      position: absolute;
-      right: 9%;
-      top: 10%;
-    }
-    upload-btn-wrapper {
-      position: relative;
-      overflow: hidden;
-      display: inline-block;
-    }
-
-    .btn {
-      border: 2px solid black;
-      color: black;
-      background-color: white;
-      padding: 8px 20px;
-      border-radius: 8px;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    .upload-btn-wrapper input[type=file] {
-      font-size: 100px;
-      position: absolute;
-      left: 0;
-      top: 0;
-      opacity: 0;
-    }
-    .download-link{
-      position: absolute;
-      left: 3%;
-      bottom: 9%;
-    }
-    a{
-      color: black;
-      text-decoration: none;
-    }
-
-  </style>
 
 </head>
 
