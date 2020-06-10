@@ -37,7 +37,7 @@ class ThreeJs {
 
         let audioBlob = this.wav.toFile("audio.wav");
         this.audio = new Audio(audioBlob);
-        // this.audio.play();
+        this.audio.play();
         this.audio.loop = true;
         obj = this;
         this.getResourcesFromServer();
