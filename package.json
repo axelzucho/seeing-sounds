@@ -27,9 +27,9 @@
   },
   "devDependencies": {
     "cors": "^2.8.5",
-    "exports-loader": "^0.7.0",
+    "exports-loader": "^4.0.0",
     "filereader": "^0.10.3",
-    "imports-loader": "^0.8.0",
-    "webpack": "^4.43.0"
+    "imports-loader": "^4.0.1",
+    "webpack": "^5.75.0"
   }
 }
